@@ -55,8 +55,18 @@ const split = (title: string) => {
                         <p class="pr__body">{item.text}</p>
                       </div>
                     </div>
-                    <div class="pr__panel" aria-hidden="true">
-                      {parts ? (
+                    <div class:list={['pr__panel', { 'pr__panel--image': item.image }]} aria-hidden="true">
+                      {item.image ? (
+                        <img
+                          class="pr__img"
+                          src={item.image}
+                          alt=""
+                          width="800"
+                          height="900"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      ) : parts ? (
                         <p class="pr__pair">
                           <span class="pr__lead">{parts.lead}</span>
                           <span class="pr__link">{parts.link}</span>
@@ -180,6 +190,27 @@ const split = (title: string) => {
     overflow: hidden;
     padding: var(--space-5);
     border-radius: 14px; /* ImpactRow "Image R" */
+  }
+
+  /* Image panel (when the principle has an image): fills the panel edge to edge */
+  .pr__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .pr__panel--image .pr__panel-num {
+    z-index: 1;
+    padding: 4px 8px;
+    border-radius: var(--radius-pill);
+    background: rgb(0 0 0 / 0.45);
+    color: var(--color-on-brand);
+  }
+
+  .pr__card.is-active .pr__panel--image {
+    min-height: 220px;
   }
 
   .pr__pair {

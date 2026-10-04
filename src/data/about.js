@@ -161,18 +161,23 @@ export const howWeWork = {
   ],
 };
 
+/**
+ * Principles. `image` fills the panel revealed when a card opens. Use a path in
+ * /public/assets/about/principles/ (e.g. '/assets/about/principles/01-problems.webp'),
+ * or null to show the typographic panel ("Problems / before / services") instead.
+ */
 export const principles = {
   eyebrow: 'Eight principles',
   title: 'The principles we work by.',
   items: [
-    { title: 'Problems before services.', text: 'We do not force every requirement into an existing service category.' },
-    { title: 'Research before assumption.', text: 'Decisions should start with evidence wherever evidence can reasonably be gathered.' },
-    { title: 'Strategy before execution.', text: 'Activity without direction creates output, not progress.' },
-    { title: 'Systems before scale.', text: 'Scaling a weak system usually produces a bigger weak system.' },
-    { title: 'Communication with context.', text: 'Commercial, institutional and public communication need different approaches.' },
-    { title: 'Technology with purpose.', text: 'Technology should reduce friction, improve decisions or create measurable leverage.' },
-    { title: 'Data with interpretation.', text: 'Data alone is not insight.' },
-    { title: 'Creativity with purpose.', text: 'Good creative should communicate, influence behaviour and serve an objective.' },
+    { title: 'Problems before services.', text: 'We do not force every requirement into an existing service category.', image: null },
+    { title: 'Research before assumption.', text: 'Decisions should start with evidence wherever evidence can reasonably be gathered.', image: null },
+    { title: 'Strategy before execution.', text: 'Activity without direction creates output, not progress.', image: null },
+    { title: 'Systems before scale.', text: 'Scaling a weak system usually produces a bigger weak system.', image: null },
+    { title: 'Communication with context.', text: 'Commercial, institutional and public communication need different approaches.', image: null },
+    { title: 'Technology with purpose.', text: 'Technology should reduce friction, improve decisions or create measurable leverage.', image: null },
+    { title: 'Data with interpretation.', text: 'Data alone is not insight.', image: null },
+    { title: 'Creativity with purpose.', text: 'Good creative should communicate, influence behaviour and serve an objective.', image: null },
   ],
 };
 
