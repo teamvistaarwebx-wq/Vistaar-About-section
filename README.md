@@ -24,5 +24,7 @@ To add a missing portrait, drop a 480×528 WebP into `public/assets/about/team/`
 
 ## Timeline modes
 
-- **≥1024px, motion allowed:** pinned scroll track. The rail fills, milestones activate in turn, the giant numerals swap, and the 2026 chips burst in. The year scrubber is clickable and works with arrow keys and Home/End.
-- **<1024px, `prefers-reduced-motion`, or no JS:** a stacked list with a left rail and no pinning.
+The timeline is a port of the Framer `ScrollTimeline` code component, rebuilt in plain Astro with no React. Each milestone's panel colour is set by `theme` in `src/data/about.js`.
+
+- **≥768px, motion allowed:** sticky rounded frame. Scrolling wipes each panel off to the left while its big year tips over, and the next panel wipes in. A progress line runs along the top, and the year scrubber is clickable and works with arrow keys and Home/End. The 2026 panel's chips burst in.
+- **<768px, `prefers-reduced-motion`, or no JS:** stacked colour cards that reveal on scroll, with no pinning.

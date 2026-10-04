@@ -69,9 +69,9 @@ export const founder = {
 };
 
 /**
- * Timeline milestones, in order.
- * - year:      label shown on the card and scrubber
- * - numeral:   giant outlined background numeral (desktop)
+ * Timeline milestones, in order (rendered by the ScrollTimeline panels).
+ * - year:      big year on the panel and the scrubber label
+ * - theme:     panel colours: 'light' (surface), 'dark' (ink) or 'brand' (red)
  * - principle: optional guiding line from the profile { label, text }
  * - finale:    marks the "now" milestone; its chips animate in
  */
@@ -82,47 +82,47 @@ export const timeline = {
   milestones: [
     {
       year: '2019',
-      numeral: '2019',
+      theme: 'light',
       phase: 'The Beginning',
       text: 'A founder-led digital practice in Bhopal: websites, digital presence, design and marketing support.',
       principle: { label: 'Principle', text: 'Understand the problem, find a solution, deliver.' },
     },
     {
       year: '2020–21',
-      numeral: '2020',
+      theme: 'dark',
       phase: 'Building the Foundation',
       text: 'Projects grow into a structured team across web, social, design, content and SEO.',
       principle: { label: 'Principle', text: 'Functions should work together, not as disconnected vendors.' },
     },
     {
       year: '2022',
-      numeral: '2022',
+      theme: 'light',
       phase: 'Services to Brand Thinking',
       text: 'Clients start asking what their brand should stand for. We move upstream into positioning, identity and strategy.',
     },
     {
       year: '2023',
-      numeral: '2023',
+      theme: 'dark',
       phase: 'Integrated Capabilities',
       text: 'Brand, technology, social, performance and production start working as one partner.',
     },
     {
       year: '2024',
-      numeral: '2024',
+      theme: 'light',
       phase: 'Business Outcomes',
       text: 'Focus shifts from activity to revenue, acquisition, conversion and measurement.',
       principle: { label: 'The question', text: 'What problem are we actually trying to solve?' },
     },
     {
       year: '2025',
-      numeral: '2025',
+      theme: 'dark',
       phase: 'Systems Over Campaigns',
       text: 'We build one connected operating model: Research, Strategy, Brand, Communication, Technology, Distribution, Measurement, Optimisation.',
       principle: { label: 'Insight', text: 'Most organisations suffer from fragmentation, not a lack of activity.' },
     },
     {
       year: '2026',
-      numeral: '2026',
+      theme: 'brand',
       phase: 'Multidisciplinary Consultancy',
       text: 'Five capability areas join the brand and growth practice built since 2019.',
       principle: {
