@@ -1,0 +1,44 @@
+---
+/** Clean stand-in for a missing portrait: initials on the surface tone. */
+interface Props {
+  name: string;
+}
+const { name } = Astro.props;
+const initials = name
+  .split(/\s+/)
+  .filter(Boolean)
+  .map((part) => part[0])
+  .slice(0, 2)
+  .join('')
+  .toUpperCase();
+---
+
+<div class="placeholder" role="img" aria-label={`Portrait of ${name} coming soon`}>
+  <span aria-hidden="true">{initials}</span>
+</div>
+
+<style>
+  .placeholder {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    aspect-ratio: 10 / 11;
+    background:
+      radial-gradient(circle at 50% 120%, rgb(var(--color-brand-rgb) / 0.18), transparent 60%),
+      var(--color-surface);
+  }
+
+  .placeholder span {
+    display: grid;
+    place-items: center;
+    width: 38%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: var(--color-bg);
+    box-shadow: var(--shadow-card);
+    font-size: clamp(1.5rem, 1rem + 2vw, 2.5rem);
+    font-weight: var(--fw-semibold);
+    letter-spacing: 0.02em;
+    color: var(--color-brand);
+  }
+</style>

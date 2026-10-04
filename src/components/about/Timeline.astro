@@ -1,0 +1,742 @@
+---
+/**
+ * Journey timeline, 2019 → 2026.
+ *
+ * One markup, three modes:
+ * - Default (no JS, < 1024px, or reduced motion): vertical list with a left rail;
+ *   cards reveal on scroll (static when motion is reduced).
+ * - Pinned (≥ 1024px, motion allowed): JS adds .is-pinned. The section becomes a
+ *   tall scroll track with a sticky 100vh stage. Scroll progress fills the rail,
+ *   activates milestones in turn and swaps the giant background numeral.
+ * - The year scrubber is a roving-tabindex list of buttons (arrow keys, Home/End).
+ */
+import { timeline } from '../../data/about.js';
+
+const { eyebrow, title, intro, milestones } = timeline;
+---
+
+<section
+  class="tl section"
+  id="journey"
+  aria-labelledby="journey-title"
+  data-timeline
+  style={`--count: ${milestones.length}`}
+>
+  <div class="tl__pin">
+    <div class="container tl__grid">
+      <header class="tl__head">
+        <p class="eyebrow">{eyebrow}</p>
+        <h2 class="section-title" id="journey-title">{title}</h2>
+        <p class="tl__intro">{intro}</p>
+      </header>
+
+      <nav class="tl__scrubber" aria-label="Jump to a year">
+        <div class="tl__rail" aria-hidden="true">
+          <span class="tl__rail-fill" data-tl-fill></span>
+        </div>
+        <ol class="tl__years">
+          {
+            milestones.map((m, i) => (
+              <li>
+                <button
+                  class:list={['tl__year-btn', { 'is-finale': m.finale }]}
+                  type="button"
+                  data-tl-btn={i}
+                  tabindex={i === 0 ? 0 : -1}
+                  aria-controls={`tl-item-${i}`}
+                >
+                  <span class="tl__dot" aria-hidden="true" />
+                  <span class="tl__year-label">{m.year}</span>
+                  <span class="visually-hidden">: {m.phase}</span>
+                </button>
+              </li>
+            ))
+          }
+        </ol>
+      </nav>
+
+      <div class="tl__stage">
+        <div class="tl__numerals" aria-hidden="true">
+          {milestones.map((m, i) => <span class="tl__numeral" data-tl-numeral={i}>{m.numeral}</span>)}
+        </div>
+
+        <ol class="tl__list">
+          {
+            milestones.map((m, i) => (
+              <li
+                class:list={['tl__item', { 'is-finale': m.finale }]}
+                id={`tl-item-${i}`}
+                data-tl-item={i}
+                data-reveal
+              >
+                <span class="tl__item-dot" aria-hidden="true" />
+                <article class="tl__card">
+                  <p class="tl__card-year">
+                    {m.year}
+                    {m.badge && <span class="tl__badge">{m.badge}</span>}
+                  </p>
+                  <h3 class="tl__phase">{m.phase}</h3>
+                  <p class="tl__text">{m.text}</p>
+                  {m.chips && (
+                    <ul class="tl__chips" aria-label="New capability areas in 2026">
+                      {m.chips.map((chip, c) => (
+                        <li class="tl__chip" style={`--i: ${c}`}>
+                          {chip}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {m.principle && (
+                    <p class="tl__principle">
+                      <span class="tl__principle-label">{m.principle.label}</span>
+                      <span class="tl__principle-text">{m.principle.text}</span>
+                    </p>
+                  )}
+                </article>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  const desktop = window.matchMedia('(min-width: 1024px)');
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  document.querySelectorAll<HTMLElement>('[data-timeline]').forEach((section) => {
+    const items = [...section.querySelectorAll<HTMLElement>('[data-tl-item]')];
+    const buttons = [...section.querySelectorAll<HTMLButtonElement>('[data-tl-btn]')];
+    const numerals = [...section.querySelectorAll<HTMLElement>('[data-tl-numeral]')];
+    const fill = section.querySelector<HTMLElement>('[data-tl-fill]');
+    const n = items.length;
+    let active = -1;
+    let pinned = false;
+    let queued = false;
+
+    const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
+
+    function setActive(i: number) {
+      if (i === active) return;
+      active = i;
+      section.dataset.active = String(i);
+      items.forEach((el, k) => {
+        el.classList.toggle('is-active', k === i);
+        el.classList.toggle('is-past', k < i);
+        if (k === i) el.setAttribute('aria-current', 'step');
+        else el.removeAttribute('aria-current');
+      });
+      buttons.forEach((btn, k) => {
+        btn.classList.toggle('is-active', k === i);
+        btn.classList.toggle('is-past', k < i);
+        btn.tabIndex = k === i ? 0 : -1;
+        if (k === i) btn.setAttribute('aria-current', 'step');
+        else btn.removeAttribute('aria-current');
+      });
+      numerals.forEach((el, k) => el.classList.toggle('is-active', k === i));
+      if (!pinned && fill) fill.style.transform = `scaleY(${n > 1 ? i / (n - 1) : 1})`;
+    }
+
+    /** Scroll progress through the pinned track, 0 → 1. */
+    function trackProgress() {
+      const rect = section.getBoundingClientRect();
+      const total = rect.height - window.innerHeight;
+      return total > 0 ? clamp(-rect.top / total, 0, 1) : 0;
+    }
+
+    function update() {
+      queued = false;
+      if (pinned) {
+        const p = trackProgress();
+        // Rail runs from the first dot to the last; dots sit at (i + 0.5) / n.
+        if (fill) fill.style.transform = `scaleY(${clamp((p * n - 0.5) / (n - 1), 0, 1)})`;
+        setActive(clamp(Math.floor(p * n), 0, n - 1));
+      } else {
+        // Static list: the active item is the last one whose top has passed 55% of the viewport.
+        const line = window.innerHeight * 0.55;
+        let idx = 0;
+        items.forEach((el, k) => {
+          if (el.getBoundingClientRect().top < line) idx = k;
+        });
+        setActive(idx);
+      }
+    }
+
+    function onScroll() {
+      if (!queued) {
+        queued = true;
+        requestAnimationFrame(update);
+      }
+    }
+
+    function scrollToItem(i: number) {
+      const behavior: ScrollBehavior = reduce.matches ? 'auto' : 'smooth';
+      if (pinned) {
+        const top = section.getBoundingClientRect().top + window.scrollY;
+        const total = section.offsetHeight - window.innerHeight;
+        window.scrollTo({ top: top + ((i + 0.5) / n) * total, behavior });
+      } else {
+        const top = items[i].getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.3;
+        window.scrollTo({ top, behavior });
+      }
+    }
+
+    buttons.forEach((btn, i) => {
+      btn.addEventListener('click', () => {
+        setActive(i);
+        scrollToItem(i);
+      });
+      btn.addEventListener('keydown', (e) => {
+        let next = -1;
+        if (e.key === 'ArrowDown' || e.key === 'ArrowRight') next = Math.min(n - 1, i + 1);
+        else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') next = Math.max(0, i - 1);
+        else if (e.key === 'Home') next = 0;
+        else if (e.key === 'End') next = n - 1;
+        if (next < 0) return;
+        e.preventDefault();
+        setActive(next);
+        buttons[next].focus({ preventScroll: true });
+        scrollToItem(next);
+      });
+    });
+
+    function applyMode() {
+      const wasPinned = pinned;
+      pinned = desktop.matches && !reduce.matches;
+      section.classList.toggle('is-pinned', pinned);
+      // In pinned mode the stage owns the card transitions, so the generic
+      // scroll reveal is switched off; switching back leaves cards visible.
+      items.forEach((el) => {
+        if (pinned) {
+          el.removeAttribute('data-reveal');
+          el.classList.add('is-visible');
+        } else if (wasPinned) {
+          el.setAttribute('data-reveal', '');
+        }
+      });
+      active = -1;
+      update();
+    }
+
+    // Only listen to scroll while the section is near the viewport.
+    let listening = false;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !listening) {
+          window.addEventListener('scroll', onScroll, { passive: true });
+          listening = true;
+          update();
+        } else if (!entry.isIntersecting && listening) {
+          window.removeEventListener('scroll', onScroll);
+          listening = false;
+          update();
+        }
+      },
+      { rootMargin: '100px 0px' },
+    );
+    io.observe(section);
+
+    desktop.addEventListener('change', applyMode);
+    reduce.addEventListener('change', applyMode);
+    window.addEventListener('resize', onScroll, { passive: true });
+    applyMode();
+  });
+</script>
+
+<style>
+  /* ---------- Shared ---------- */
+  .tl {
+    position: relative;
+  }
+
+  .tl__head {
+    display: grid;
+    gap: var(--space-4);
+    margin-bottom: var(--space-7);
+  }
+
+  .tl__intro {
+    max-width: 30rem;
+    font-size: var(--fs-lead);
+    font-weight: var(--fw-medium);
+    color: var(--color-text);
+  }
+
+  .tl__scrubber,
+  .tl__numerals {
+    display: none;
+  }
+
+  .tl__card {
+    position: relative;
+    display: grid;
+    gap: var(--space-3);
+    padding: var(--space-5);
+    border-radius: var(--radius-card);
+    background: var(--color-surface);
+  }
+
+  .tl__card-year {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    font-size: var(--fs-eyebrow);
+    font-weight: var(--fw-bold);
+    letter-spacing: var(--tracking-eyebrow);
+    line-height: 1;
+    color: var(--color-brand);
+  }
+
+  .tl__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+    background: var(--color-brand);
+    color: var(--color-on-brand);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .tl__badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: tl-blink 1.6s var(--ease-in-out) infinite;
+  }
+
+  .tl__phase {
+    font-size: var(--fs-h3);
+    font-weight: var(--fw-semibold);
+    line-height: 1.2;
+  }
+
+  .tl__text {
+    color: var(--color-text);
+    font-weight: var(--fw-medium);
+  }
+
+  .tl__principle {
+    display: grid;
+    gap: var(--space-1);
+    margin-top: var(--space-2);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--color-line);
+  }
+
+  .tl__principle-label {
+    font-size: 0.75rem;
+    font-weight: var(--fw-bold);
+    letter-spacing: var(--tracking-eyebrow);
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+
+  .tl__principle-text {
+    font-size: var(--fs-body);
+    font-weight: var(--fw-semibold);
+    color: var(--color-ink);
+  }
+
+  .tl__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+  }
+
+  .tl__chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    padding: 6px 14px;
+    border-radius: var(--radius-pill);
+    background: var(--color-bg);
+    border: 1px solid rgb(var(--color-brand-rgb) / 0.4);
+    font-size: var(--fs-small);
+    font-weight: var(--fw-semibold);
+    color: var(--color-brand);
+    line-height: 1.2;
+  }
+
+  /* Finale card: brand red */
+  .tl__item.is-finale .tl__card {
+    background: var(--color-brand);
+    color: var(--color-on-brand);
+  }
+
+  .tl__item.is-finale .tl__card-year,
+  .tl__item.is-finale .tl__phase,
+  .tl__item.is-finale .tl__text,
+  .tl__item.is-finale .tl__principle-text,
+  .tl__item.is-finale .tl__principle-label {
+    color: var(--color-on-brand);
+  }
+
+  .tl__item.is-finale .tl__badge {
+    background: var(--color-bg);
+    color: var(--color-brand);
+  }
+
+  .tl__item.is-finale .tl__principle {
+    border-top-color: rgb(255 255 255 / 0.3);
+  }
+
+  /* Chips burst in once the finale is shown */
+  .js .tl__item.is-finale .tl__chip {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0) scale(0.85);
+    transition:
+      opacity var(--dur-base) var(--ease-out),
+      transform var(--dur-base) cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition-delay: calc(250ms + var(--i) * 90ms);
+  }
+
+  .js .tl:not(.is-pinned) .tl__item.is-finale.is-visible .tl__chip,
+  .js .tl.is-pinned .tl__item.is-finale.is-active .tl__chip {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* ---------- Default: vertical list with left rail (mobile, no-JS, reduced motion) ---------- */
+  .tl__list {
+    position: relative;
+    display: grid;
+    gap: var(--space-5);
+    padding-left: 28px;
+  }
+
+  .tl__list::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    bottom: 10px;
+    left: 6px;
+    width: 2px;
+    border-radius: 2px;
+    background: rgb(var(--color-brand-rgb) / 0.18);
+  }
+
+  .tl__item {
+    position: relative;
+  }
+
+  .tl__item-dot {
+    position: absolute;
+    top: 24px;
+    left: -28px;
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--color-brand);
+    border-radius: 50%;
+    background: var(--color-bg);
+    transition: background-color var(--dur-base) var(--ease-out), transform var(--dur-base) var(--ease-out);
+  }
+
+  .tl__item.is-active .tl__item-dot,
+  .tl__item.is-past .tl__item-dot {
+    background: var(--color-brand);
+  }
+
+  .tl__item.is-active .tl__item-dot {
+    transform: scale(1.25);
+  }
+
+  /* ---------- Desktop static (reduced motion / no JS ≥ 1024px) ---------- */
+  @media (min-width: 1024px) {
+    .tl__grid {
+      display: grid;
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      grid-template-rows: auto 1fr;
+      column-gap: clamp(var(--space-7), 6vw, 120px);
+    }
+
+    .tl__head {
+      grid-column: 1;
+      align-self: start;
+    }
+
+    .tl__stage {
+      grid-column: 2;
+      grid-row: 1 / span 2;
+    }
+
+    .tl__scrubber {
+      position: sticky;
+      top: var(--space-7);
+      grid-column: 1;
+      align-self: start;
+      display: block;
+    }
+
+    .tl__card {
+      padding: var(--space-6);
+    }
+  }
+
+  /* ---------- Scrubber (desktop) ---------- */
+  .tl__scrubber {
+    --row: 48px;
+    position: relative;
+  }
+
+  .tl__rail {
+    position: absolute;
+    top: calc(var(--row) / 2);
+    bottom: calc(var(--row) / 2);
+    left: 7px;
+    width: 2px;
+    border-radius: 2px;
+    background: rgb(var(--color-brand-rgb) / 0.18);
+    overflow: hidden;
+  }
+
+  .tl__rail-fill {
+    position: absolute;
+    inset: 0;
+    background: var(--color-brand);
+    transform: scaleY(0);
+    transform-origin: top;
+    will-change: transform;
+  }
+
+  .tl__years {
+    position: relative;
+    display: grid;
+  }
+
+  .tl__year-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    width: 100%;
+    height: var(--row);
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    text-align: left;
+  }
+
+  .tl__dot {
+    position: relative;
+    flex: none;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgb(var(--color-brand-rgb) / 0.5);
+    border-radius: 50%;
+    background: var(--color-bg);
+    transition: transform var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out);
+  }
+
+  /* Fill + pulse layers animate opacity/transform only */
+  .tl__dot::before,
+  .tl__dot::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 50%;
+    background: var(--color-brand);
+    opacity: 0;
+    transform: scale(0.3);
+    transition: opacity var(--dur-base) var(--ease-out), transform var(--dur-base) var(--ease-out);
+  }
+
+  .tl__year-btn.is-past .tl__dot,
+  .tl__year-btn.is-active .tl__dot {
+    border-color: var(--color-brand);
+  }
+
+  .tl__year-btn.is-past .tl__dot::before,
+  .tl__year-btn.is-active .tl__dot::before {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .tl__year-btn.is-active .tl__dot {
+    transform: scale(1.2);
+  }
+
+  .tl__year-btn.is-active .tl__dot::after {
+    animation: tl-pulse 1.8s var(--ease-out) infinite;
+  }
+
+  .tl__year-label {
+    font-size: var(--fs-body);
+    font-weight: var(--fw-semibold);
+    color: var(--color-text);
+    transform-origin: left center;
+    transition: transform var(--dur-base) var(--ease-out), color var(--dur-base) var(--ease-out);
+  }
+
+  .tl__year-btn:hover .tl__year-label {
+    color: var(--color-ink);
+  }
+
+  .tl__year-btn.is-past .tl__year-label {
+    color: var(--color-text-muted);
+  }
+
+  .tl__year-btn.is-active .tl__year-label {
+    color: var(--color-brand);
+    transform: scale(1.5);
+  }
+
+  .tl__year-btn:focus-visible {
+    outline: none;
+  }
+
+  .tl__year-btn:focus-visible .tl__year-label {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 4px;
+    border-radius: 4px;
+  }
+
+  /* ---------- Pinned mode (JS, ≥ 1024px, motion allowed) ---------- */
+  .tl.is-pinned {
+    height: calc(var(--count) * 65vh + 100vh);
+    padding-block: 0;
+  }
+
+  .tl.is-pinned .tl__pin {
+    position: sticky;
+    top: 0;
+    display: flex;
+    align-items: center;
+    height: 100vh;
+    height: 100svh;
+    overflow: hidden;
+  }
+
+  .tl.is-pinned .tl__grid {
+    align-items: center;
+    grid-template-rows: auto auto;
+  }
+
+  .tl.is-pinned .tl__head {
+    margin-bottom: var(--space-6);
+    align-self: end;
+  }
+
+  .tl.is-pinned .tl__scrubber {
+    position: relative;
+    top: auto;
+    align-self: start;
+  }
+
+  .tl.is-pinned .tl__stage {
+    position: relative;
+    align-self: center;
+  }
+
+  .tl.is-pinned .tl__numerals {
+    position: absolute;
+    inset: -36% 0 auto auto;
+    display: block;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .tl__numeral {
+    position: absolute;
+    top: 0;
+    right: 0;
+    font-size: clamp(9rem, 16vw, 17rem);
+    font-weight: var(--fw-bold);
+    line-height: 1;
+    letter-spacing: -0.04em;
+    color: transparent;
+    -webkit-text-stroke: 1.5px rgb(var(--color-brand-rgb) / 0.22);
+    opacity: 0;
+    transform: translate3d(0, 6%, 0);
+    transition: opacity var(--dur-slow) var(--ease-out), transform var(--dur-slow) var(--ease-out);
+  }
+
+  .tl__numeral.is-active {
+    opacity: 1;
+    transform: none;
+  }
+
+  .tl.is-pinned .tl__list {
+    display: grid;
+    padding-left: 0;
+  }
+
+  .tl.is-pinned .tl__list::before,
+  .tl.is-pinned .tl__item-dot {
+    display: none;
+  }
+
+  /* All cards share one grid cell; only the active one is shown. */
+  .tl.is-pinned .tl__item {
+    grid-area: 1 / 1;
+    opacity: 0;
+    transform: translate3d(0, 48px, 0) scale(0.98);
+    transition:
+      opacity var(--dur-base) var(--ease-out),
+      transform var(--dur-base) var(--ease-out);
+    pointer-events: none;
+  }
+
+  .tl.is-pinned .tl__item.is-past {
+    transform: translate3d(0, -48px, 0) scale(0.96);
+  }
+
+  .tl.is-pinned .tl__item.is-active {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+    transition-delay: 120ms;
+  }
+
+  .tl.is-pinned .tl__card {
+    min-height: 320px;
+    align-content: start;
+    padding: clamp(var(--space-6), 3vw, 48px);
+    background: var(--color-glass);
+    box-shadow: var(--shadow-float);
+    backdrop-filter: blur(12px);
+  }
+
+  .tl.is-pinned .tl__item.is-finale .tl__card {
+    background: var(--color-brand);
+  }
+
+  .tl.is-pinned .tl__phase {
+    font-size: clamp(1.75rem, 1.2rem + 1.4vw, 2.5rem);
+  }
+
+  .tl.is-pinned .tl__text {
+    font-size: var(--fs-lead);
+  }
+
+  @keyframes tl-pulse {
+    0% {
+      opacity: 0.5;
+      transform: scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(2.6);
+    }
+  }
+
+  @keyframes tl-blink {
+    50% {
+      opacity: 0.3;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tl__year-btn.is-active .tl__dot::after,
+    .tl__badge::before {
+      animation: none;
+    }
+  }
+</style>

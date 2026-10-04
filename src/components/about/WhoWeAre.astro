@@ -1,0 +1,104 @@
+---
+import { whoWeAre } from '../../data/about.js';
+---
+
+<section class="section who" aria-labelledby="who-title">
+  <div class="container">
+    <header class="section-head section-head--split">
+      <p class="eyebrow">{whoWeAre.eyebrow}</p>
+      <h2 class="section-title" id="who-title" data-reveal>{whoWeAre.title}</h2>
+      <p class="section-lede" data-reveal>{whoWeAre.intro}</p>
+    </header>
+
+    <div class="who__panel">
+      <p class="who__label">{whoWeAre.disciplinesLabel}</p>
+      <ul class="who__grid">
+        {
+          whoWeAre.disciplines.map((d, i) => (
+            <li class="who__card" data-reveal style={`--reveal-i: ${i % 3}`}>
+              <span class="who__num" aria-hidden="true">
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              <h3 class="who__name">{d.name}</h3>
+              <p class="who__detail">{d.detail}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Panel + white cards follow the home "What we do" block (Figma 7:725). */
+  .who__panel {
+    padding: clamp(var(--space-4), 5vw, 76px) clamp(var(--space-4), 6vw, 103px);
+    border-radius: var(--radius-card);
+    background: var(--color-surface);
+  }
+
+  .who__label {
+    margin-bottom: var(--space-5);
+    font-size: var(--fs-body);
+    font-weight: var(--fw-semibold);
+    color: var(--color-text);
+  }
+
+  .who__grid {
+    display: grid;
+    gap: 17px 18px;
+  }
+
+  .who__card {
+    display: grid;
+    align-content: start;
+    gap: var(--space-1);
+    padding: var(--space-5);
+    border-radius: var(--radius-card);
+    background: var(--color-bg);
+  }
+
+  .who__num {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: var(--space-4);
+    font-size: var(--fs-small);
+    font-weight: var(--fw-bold);
+    letter-spacing: var(--tracking-eyebrow);
+    color: var(--color-brand);
+  }
+
+  .who__num::before {
+    content: '';
+    width: var(--dot);
+    height: var(--dot);
+    border-radius: 50%;
+    background: var(--color-brand);
+  }
+
+  .who__name {
+    font-size: var(--fs-card-title);
+    font-weight: var(--fw-semibold);
+    line-height: var(--lh-body);
+    color: var(--color-text);
+  }
+
+  .who__detail {
+    font-size: var(--fs-small);
+    font-weight: var(--fw-medium);
+    color: var(--color-text);
+  }
+
+  @media (min-width: 768px) {
+    .who__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .who__grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+</style>

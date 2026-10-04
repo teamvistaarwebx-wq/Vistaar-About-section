@@ -1,0 +1,165 @@
+---
+import { contact } from '../../data/about.js';
+---
+
+<section class="cta" id="contact" aria-labelledby="cta-title">
+  <div class="container">
+    <div class="cta__panel" data-reveal>
+      <div class="cta__glow" aria-hidden="true"></div>
+      <div class="cta__copy">
+        <p class="eyebrow eyebrow--light">{contact.eyebrow}</p>
+        <h2 class="section-title" id="cta-title">{contact.title}</h2>
+        <p class="cta__text">{contact.text}</p>
+        <div class="cta__actions">
+          <a class="btn btn--light" href={contact.phone.href}>
+            {contact.phone.label} {contact.phone.display}
+          </a>
+          <a class="btn btn--ghost" href={contact.email.href}>
+            {contact.email.label} us
+          </a>
+        </div>
+      </div>
+
+      <address class="cta__details">
+        <div>
+          <span class="cta__label">{contact.phone.label}</span>
+          <a href={contact.phone.href}>{contact.phone.display}</a>
+        </div>
+        <div>
+          <span class="cta__label">{contact.email.label}</span>
+          <a href={contact.email.href}>{contact.email.display}</a>
+        </div>
+        <div>
+          <span class="cta__label">{contact.address.label}</span>
+          <span>
+            {contact.address.lines.map((line) => (
+              <>
+                {line}
+                <br />
+              </>
+            ))}
+          </span>
+        </div>
+      </address>
+    </div>
+    <p class="cta__signoff">{contact.signoff}</p>
+  </div>
+</section>
+
+<style>
+  .cta {
+    padding-block: var(--space-section);
+  }
+
+  .cta__panel {
+    position: relative;
+    overflow: hidden;
+    display: grid;
+    gap: var(--space-7);
+    padding: clamp(var(--space-6), 6vw, 96px) clamp(var(--space-5), 6vw, 96px);
+    border-radius: var(--radius-lg);
+    background: var(--color-brand);
+    color: var(--color-on-brand);
+  }
+
+  .cta__glow {
+    position: absolute;
+    inset: -40% -20% auto auto;
+    width: 70%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgb(255 255 255 / 0.18), transparent 65%);
+    pointer-events: none;
+  }
+
+  .cta__copy {
+    position: relative;
+    display: grid;
+    gap: var(--space-5);
+    align-content: start;
+  }
+
+  .eyebrow--light,
+  .eyebrow--light::before {
+    color: var(--color-on-brand);
+  }
+
+  .eyebrow--light::before {
+    background: var(--color-on-brand);
+  }
+
+  .cta__text {
+    max-width: 32rem;
+    font-size: var(--fs-lead);
+    font-weight: var(--fw-medium);
+  }
+
+  .cta__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  .btn--light {
+    background: var(--color-bg);
+    color: var(--color-brand);
+  }
+
+  .btn--ghost {
+    border-color: rgb(255 255 255 / 0.7);
+    color: var(--color-on-brand);
+  }
+
+  .cta__details {
+    position: relative;
+    display: grid;
+    gap: var(--space-5);
+    align-content: start;
+    font-style: normal;
+    font-size: var(--fs-body);
+    font-weight: var(--fw-medium);
+    line-height: var(--lh-body);
+  }
+
+  .cta__details > div {
+    display: grid;
+    gap: var(--space-1);
+    padding-top: var(--space-4);
+    border-top: 1px solid rgb(255 255 255 / 0.3);
+  }
+
+  .cta__details a {
+    text-decoration: none;
+    overflow-wrap: anywhere;
+  }
+
+  .cta__details a:hover {
+    text-decoration: underline;
+  }
+
+  .cta__label {
+    font-size: 0.75rem;
+    font-weight: var(--fw-bold);
+    letter-spacing: var(--tracking-eyebrow);
+    text-transform: uppercase;
+  }
+
+  .cta :focus-visible {
+    outline-color: var(--color-on-brand);
+  }
+
+  .cta__signoff {
+    margin-top: var(--space-5);
+    font-size: var(--fs-small);
+    font-weight: var(--fw-medium);
+    color: var(--color-text-muted);
+    text-align: center;
+  }
+
+  @media (min-width: 1024px) {
+    .cta__panel {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 4fr);
+      align-items: end;
+    }
+  }
+</style>

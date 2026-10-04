@@ -1,0 +1,283 @@
+---
+import { howWeWork } from '../../data/about.js';
+---
+
+<section class="section section--surface how" aria-labelledby="how-title">
+  <div class="container">
+    <header class="section-head section-head--split">
+      <p class="eyebrow">{howWeWork.eyebrow}</p>
+      <h2 class="section-title" id="how-title" data-reveal>{howWeWork.title}</h2>
+      <p class="section-lede" data-reveal>{howWeWork.intro}</p>
+    </header>
+
+    <ol class="how__loop" aria-label="Our six-step loop">
+      {
+        howWeWork.steps.map((step, i) => (
+          <li class="how__step" data-reveal style={`--reveal-i: ${i}`}>
+            <span class="how__step-num" aria-hidden="true">
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            <span class="how__step-name">{step}</span>
+          </li>
+        ))
+      }
+    </ol>
+    <p class="how__loop-note" aria-hidden="true">
+      <span class="how__loop-icon"></span> Improve feeds back into research
+    </p>
+
+    <h3 class="how__problems-title" data-reveal>{howWeWork.problemsTitle}</h3>
+    <p class="how__hint">{howWeWork.problemsHint}</p>
+    <ul class="how__problems">
+      {
+        howWeWork.problems.map((p, i) => (
+          <li data-reveal style={`--reveal-i: ${i % 3}`}>
+            <button class="flip" type="button" aria-pressed="false" data-flip>
+              <span class="flip__inner">
+                <span class="flip__face flip__front">
+                  <span class="flip__label">{howWeWork.looksLabel}</span>
+                  <span class="flip__text">{p.looks}</span>
+                  <span class="flip__turn" aria-hidden="true">
+                    ↻
+                  </span>
+                </span>
+                <span class="flip__face flip__back">
+                  <span class="flip__label">{howWeWork.isLabel}</span>
+                  <span class="flip__text">{p.is}</span>
+                </span>
+              </span>
+            </button>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-flip]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      btn.setAttribute('aria-pressed', String(btn.getAttribute('aria-pressed') !== 'true'));
+    });
+  });
+</script>
+
+<style>
+  /* Loop: numbered pills joined by a line; wraps to a 2-col grid on small screens. */
+  .how__loop {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3);
+    counter-reset: step;
+  }
+
+  .how__step {
+    position: relative;
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-4);
+    border-radius: var(--radius-card);
+    background: var(--color-bg);
+  }
+
+  .how__step-num {
+    display: inline-grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--color-brand);
+    color: var(--color-on-brand);
+    font-size: var(--fs-small);
+    font-weight: var(--fw-bold);
+  }
+
+  .how__step-name {
+    font-size: var(--fs-body);
+    font-weight: var(--fw-semibold);
+    line-height: 1.25;
+  }
+
+  .how__loop-note {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: var(--space-4);
+    font-size: var(--fs-small);
+    font-weight: var(--fw-medium);
+    color: var(--color-text-muted);
+  }
+
+  .how__loop-icon {
+    width: 28px;
+    height: 14px;
+    border: 2px solid var(--color-brand);
+    border-top: 0;
+    border-radius: 0 0 14px 14px;
+  }
+
+  @media (min-width: 768px) {
+    .how__loop {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .how__loop {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: var(--space-4);
+    }
+
+    /* Connector arrows between steps */
+    .how__step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      right: calc(var(--space-4) * -1);
+      width: var(--space-4);
+      height: 2px;
+      background: rgb(var(--color-brand-rgb) / 0.4);
+    }
+
+    .how__loop-note {
+      justify-content: flex-end;
+    }
+  }
+
+  /* Problem flip cards */
+  .how__problems-title {
+    margin-top: clamp(var(--space-7), 6vw, 100px);
+    font-size: var(--fs-h3);
+    font-weight: var(--fw-semibold);
+  }
+
+  .how__hint {
+    margin-top: var(--space-2);
+    margin-bottom: var(--space-5);
+    font-size: var(--fs-small);
+    font-weight: var(--fw-medium);
+    color: var(--color-text-muted);
+  }
+
+  .how__problems {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .flip {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+    perspective: 1000px;
+    border-radius: var(--radius-card);
+  }
+
+  .flip__inner {
+    position: relative;
+    display: grid;
+    min-height: 148px;
+    transform-style: preserve-3d;
+    transition: transform var(--dur-slow) var(--ease-out);
+  }
+
+  .flip__face {
+    grid-area: 1 / 1;
+    display: grid;
+    align-content: space-between;
+    gap: var(--space-4);
+    padding: var(--space-5);
+    border-radius: var(--radius-card);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  .flip__front {
+    background: var(--color-bg);
+    color: var(--color-ink);
+  }
+
+  .flip__back {
+    background: var(--color-brand);
+    color: var(--color-on-brand);
+    transform: rotateY(180deg);
+  }
+
+  .flip__label {
+    font-size: 0.75rem;
+    font-weight: var(--fw-bold);
+    letter-spacing: var(--tracking-eyebrow);
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+
+  .flip__back .flip__label {
+    color: var(--color-on-brand);
+  }
+
+  .flip__text {
+    font-size: var(--fs-card-title);
+    font-weight: var(--fw-semibold);
+    line-height: 1.3;
+  }
+
+  .flip__turn {
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-5);
+    color: var(--color-brand);
+    font-size: 1.125rem;
+  }
+
+  .flip[aria-pressed='true'] .flip__inner {
+    transform: rotateY(180deg);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .flip:hover .flip__inner {
+      transform: rotateY(180deg);
+    }
+
+    .flip[aria-pressed='true']:hover .flip__inner {
+      transform: rotateY(180deg);
+    }
+  }
+
+  @media (min-width: 768px) {
+    .how__problems {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .how__problems {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+    }
+  }
+
+  /* Reduced motion: crossfade instead of a 3D turn. */
+  @media (prefers-reduced-motion: reduce) {
+    .flip__inner,
+    .flip[aria-pressed='true'] .flip__inner,
+    .flip:hover .flip__inner {
+      transform: none !important;
+    }
+
+    .flip__back {
+      transform: none;
+      opacity: 0;
+    }
+
+    .flip[aria-pressed='true'] .flip__back {
+      opacity: 1;
+    }
+
+    .flip[aria-pressed='true'] .flip__front {
+      opacity: 0;
+    }
+  }
+</style>

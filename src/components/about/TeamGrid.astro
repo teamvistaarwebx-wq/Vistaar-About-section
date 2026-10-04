@@ -1,0 +1,181 @@
+---
+import { team } from '../../data/about.js';
+import PersonPlaceholder from './PersonPlaceholder.astro';
+---
+
+<section class="section team" aria-labelledby="team-title">
+  <div class="container">
+    <header class="section-head section-head--split">
+      <p class="eyebrow">{team.eyebrow}</p>
+      <h2 class="section-title" id="team-title" data-reveal>{team.title}</h2>
+      <p class="section-lede" data-reveal>{team.intro}</p>
+    </header>
+
+    <ul class="team__grid">
+      {
+        team.members.map((m, i) => (
+          <li class:list={['team__card', { 'team__card--lead': i === 0 }]} data-reveal style={`--reveal-i: ${i % 4}`}>
+            <div class="team__media">
+              {m.photo ? (
+                <>
+                  <img
+                    class="team__photo"
+                    src={m.photo}
+                    alt={`${m.name}, ${m.role}`}
+                    width="480"
+                    height="528"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                  {m.photoAlt && (
+                    <img
+                      class="team__photo team__photo--alt"
+                      src={m.photoAlt}
+                      alt=""
+                      width="480"
+                      height="528"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  )}
+                </>
+              ) : (
+                <PersonPlaceholder name={m.name} />
+              )}
+            </div>
+            <div class="team__meta">
+              <h3 class="team__name">{m.name}</h3>
+              <p class="team__role">{m.role}</p>
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  /*
+   * Card follows the Figma team cards (7:3541): photo over a brand-red name band.
+   * The first member (founder) gets a larger lead card so 13 people fill whole rows:
+   * 2 cols (lead spans the row) and 4 cols (lead spans 2 × 2).
+   */
+  .team__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3);
+  }
+
+  .team__card {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    background: var(--color-brand);
+    box-shadow: var(--shadow-card);
+  }
+
+  .team__media {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 10 / 11;
+    background: var(--color-surface);
+  }
+
+  .team__media :global(.placeholder) {
+    position: absolute;
+    inset: 0;
+    height: 100%;
+    aspect-ratio: auto;
+  }
+
+  .team__photo {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition:
+      opacity var(--dur-base) var(--ease-out),
+      transform var(--dur-slow) var(--ease-out);
+  }
+
+  /* Hover reveals the playful second take from the shoot */
+  .team__photo--alt {
+    opacity: 0;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .team__card:hover .team__photo {
+      transform: scale(1.03);
+    }
+
+    .team__card:hover .team__photo--alt {
+      opacity: 1;
+    }
+  }
+
+  .team__meta {
+    flex: 1;
+    display: grid;
+    align-content: start;
+    gap: 2px;
+    padding: var(--space-3) var(--space-4) var(--space-4);
+    color: var(--color-on-brand);
+  }
+
+  .team__name {
+    font-size: clamp(0.9375rem, 0.85rem + 0.4vw, 1.25rem);
+    font-weight: var(--fw-bold);
+    line-height: 1.25;
+  }
+
+  .team__role {
+    font-size: clamp(0.75rem, 0.7rem + 0.2vw, 0.875rem);
+    font-weight: var(--fw-medium);
+    line-height: 1.3;
+  }
+
+  .team__card--lead {
+    grid-column: span 2;
+  }
+
+  .team__card--lead .team__media {
+    aspect-ratio: 16 / 10;
+  }
+
+  @media (min-width: 768px) {
+    .team__grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: var(--space-4);
+    }
+
+    .team__card--lead {
+      grid-row: span 2;
+    }
+
+    .team__card--lead .team__media {
+      flex: 1;
+      aspect-ratio: auto;
+      min-height: 0;
+    }
+
+    .team__card--lead .team__meta {
+      flex: none;
+    }
+
+    .team__card--lead .team__name {
+      font-size: clamp(1.25rem, 1rem + 1vw, 1.75rem);
+    }
+
+    .team__card--lead .team__role {
+      font-size: var(--fs-body);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .team__grid {
+      gap: var(--space-5);
+    }
+  }
+</style>

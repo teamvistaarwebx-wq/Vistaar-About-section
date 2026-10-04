@@ -1,0 +1,126 @@
+---
+import Logo from './Logo.astro';
+import { company, footerNav } from '../data/site.js';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="container site-footer__grid">
+    <div class="site-footer__brand">
+      <Logo size="lg" />
+      <p class="eyebrow eyebrow--plain">{company.tagline}</p>
+      <p class="site-footer__summary">
+        {company.summary}<br />A brand of {company.legalName}.
+      </p>
+    </div>
+
+    {
+      footerNav.map((group) => (
+        <nav class="site-footer__col" aria-label={group.title}>
+          <h2 class="eyebrow eyebrow--plain site-footer__title">{group.title}</h2>
+          <ul>
+            {group.links.map((link) => (
+              <li>
+                <a href={link.href}>{link.label}</a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      ))
+    }
+
+    <div class="site-footer__col">
+      <h2 class="eyebrow eyebrow--plain site-footer__title">Bhopal HQ</h2>
+      <address>
+        <p>{company.address}</p>
+        <p class="site-footer__contact">
+          <a href={company.phone.href}>{company.phone.display}</a><br />
+          <a href={company.email.href}>{company.email.display}</a>
+        </p>
+      </address>
+    </div>
+  </div>
+
+  <div class="site-footer__base">
+    <p class="container">© {year} {company.legalName} · Made in Bhopal, India</p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    background: var(--color-surface);
+    color: var(--color-ink);
+  }
+
+  .site-footer__grid {
+    display: grid;
+    gap: var(--space-7) var(--space-6);
+    padding-block: var(--space-8) var(--space-7);
+  }
+
+  .site-footer__brand {
+    display: grid;
+    gap: var(--space-5);
+    align-content: start;
+  }
+
+  .site-footer__summary,
+  .site-footer__col {
+    font-size: var(--fs-body);
+    font-weight: var(--fw-medium);
+    line-height: var(--lh-loose);
+    color: var(--color-text);
+  }
+
+  .site-footer__title {
+    margin-bottom: var(--space-4);
+  }
+
+  .site-footer__col a {
+    text-decoration: none;
+  }
+
+  .site-footer__col a:hover {
+    color: var(--color-brand);
+  }
+
+  .site-footer address {
+    font-style: normal;
+    max-width: 16rem;
+  }
+
+  .site-footer__contact {
+    margin-top: var(--space-3);
+  }
+
+  .site-footer__base {
+    border-top: 1px solid var(--color-line);
+    padding-block: var(--space-5);
+    font-size: var(--fs-small);
+    font-weight: var(--fw-medium);
+    color: var(--color-text);
+    text-align: center;
+  }
+
+  @media (min-width: 768px) {
+    .site-footer__grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .site-footer__brand {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .site-footer__grid {
+      grid-template-columns: 2fr 1fr 1fr 1.2fr;
+      padding-block: 104px var(--space-8);
+    }
+
+    .site-footer__brand {
+      grid-column: auto;
+    }
+  }
+</style>

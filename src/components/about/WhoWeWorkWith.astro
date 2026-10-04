@@ -1,0 +1,174 @@
+---
+import { workWith } from '../../data/about.js';
+---
+
+<section class="section section--surface ww" aria-labelledby="ww-title">
+  <div class="container">
+    <header class="section-head">
+      <p class="eyebrow">{workWith.eyebrow}</p>
+      <h2 class="section-title" id="ww-title" data-reveal>{workWith.title}</h2>
+    </header>
+
+    <div class="ww__grid">
+      <table class="ww__table" data-reveal>
+        <caption class="visually-hidden">{workWith.tableCaption}</caption>
+        <thead>
+          <tr>
+            <th scope="col">{workWith.colFor}</th>
+            <th scope="col">{workWith.colMeans}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            workWith.rows.map((row) => (
+              <tr>
+                <th scope="row">{row.for}</th>
+                <td>{row.means}</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+
+      <div class="ww__sectors">
+        <h3 class="ww__sectors-title">{workWith.sectorsTitle}</h3>
+        {
+          workWith.sectors.map((sector, i) => (
+            <div class="ww__sector" data-reveal style={`--reveal-i: ${i}`}>
+              <h4 class="ww__sector-name">{sector.name}</h4>
+              <ul class="ww__chips">
+                {sector.items.map((item) => (
+                  <li class="chip">{item}</li>
+                ))}
+              </ul>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .ww__grid {
+    display: grid;
+    gap: var(--space-7);
+  }
+
+  .ww__table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    background: var(--color-bg);
+    text-align: left;
+  }
+
+  .ww__table thead th {
+    padding: var(--space-4) var(--space-5);
+    font-size: 0.75rem;
+    font-weight: var(--fw-bold);
+    letter-spacing: var(--tracking-eyebrow);
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+
+  .ww__table tbody th,
+  .ww__table tbody td {
+    padding: var(--space-4) var(--space-5);
+    border-top: 1px solid var(--color-line);
+    vertical-align: top;
+  }
+
+  .ww__table tbody th {
+    font-weight: var(--fw-semibold);
+    color: var(--color-ink);
+  }
+
+  .ww__table tbody td {
+    font-weight: var(--fw-medium);
+    color: var(--color-text);
+  }
+
+  .ww__table tbody tr {
+    transition: background-color var(--dur-fast) var(--ease-out);
+  }
+
+  .ww__table tbody tr:hover {
+    background: rgb(var(--color-brand-rgb) / 0.04);
+  }
+
+  /* Small screens: stack each row as a mini card */
+  @media (max-width: 599px) {
+    .ww__table thead {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+    }
+
+    .ww__table tbody tr {
+      display: grid;
+      gap: var(--space-1);
+      padding: var(--space-4) var(--space-5);
+      border-top: 1px solid var(--color-line);
+    }
+
+    .ww__table tbody tr:first-child {
+      border-top: 0;
+    }
+
+    .ww__table tbody th,
+    .ww__table tbody td {
+      padding: 0;
+      border: 0;
+    }
+  }
+
+  .ww__sectors {
+    display: grid;
+    gap: var(--space-5);
+    align-content: start;
+  }
+
+  .ww__sectors-title {
+    font-size: var(--fs-h3);
+    font-weight: var(--fw-semibold);
+  }
+
+  .ww__sector {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .ww__sector-name {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    font-size: var(--fs-body);
+    font-weight: var(--fw-semibold);
+  }
+
+  .ww__sector-name::before {
+    content: '';
+    width: var(--dot);
+    height: var(--dot);
+    border-radius: 50%;
+    background: var(--color-brand);
+  }
+
+  .ww__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  @media (min-width: 1024px) {
+    .ww__grid {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+      gap: clamp(var(--space-7), 5vw, 100px);
+    }
+  }
+</style>

@@ -1,0 +1,72 @@
+---
+import { numbers } from '../../data/about.js';
+---
+
+<section class="section numbers" aria-labelledby="numbers-title">
+  <div class="container">
+    <header class="section-head">
+      <p class="eyebrow">{numbers.eyebrow}</p>
+      <h2 class="section-title" id="numbers-title" data-reveal>{numbers.title}</h2>
+    </header>
+
+    <dl class="numbers__grid">
+      {
+        numbers.items.map((item, i) => (
+          <div class="numbers__item" data-reveal style={`--reveal-i: ${i}`}>
+            <dt class="numbers__label">{item.label}</dt>
+            <dd class="numbers__value">
+              <span class="numbers__digits" data-count={item.value}>
+                {item.value}
+              </span>
+              <span class="numbers__suffix">{item.suffix}</span>
+            </dd>
+          </div>
+        ))
+      }
+    </dl>
+  </div>
+</section>
+
+<style>
+  /* Stat type matches the home stats row (Figma 7:691). */
+  .numbers__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-6) var(--space-4);
+  }
+
+  .numbers__item {
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: flex-end; /* keep values on one baseline when labels wrap */
+    gap: var(--space-3);
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--color-line);
+  }
+
+  .numbers__value {
+    font-size: var(--fs-stat);
+    font-weight: var(--fw-semibold);
+    line-height: var(--lh-tight);
+    letter-spacing: -0.02em;
+    color: var(--color-numeral);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .numbers__suffix {
+    color: var(--color-brand);
+  }
+
+  .numbers__label {
+    font-size: var(--fs-body);
+    font-weight: var(--fw-medium);
+    color: var(--color-text);
+  }
+
+  @media (min-width: 1024px) {
+    .numbers__grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: var(--space-6);
+    }
+  }
+</style>

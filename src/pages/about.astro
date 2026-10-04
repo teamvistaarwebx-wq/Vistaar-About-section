@@ -1,0 +1,65 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AboutHero from '../components/about/AboutHero.astro';
+import WhoWeAre from '../components/about/WhoWeAre.astro';
+import FounderOrigin from '../components/about/FounderOrigin.astro';
+import Timeline from '../components/about/Timeline.astro';
+import HowWeWork from '../components/about/HowWeWork.astro';
+import PrinciplesGrid from '../components/about/PrinciplesGrid.astro';
+import VisionMission from '../components/about/VisionMission.astro';
+import NumbersStrip from '../components/about/NumbersStrip.astro';
+import WhoWeWorkWith from '../components/about/WhoWeWorkWith.astro';
+import TeamGrid from '../components/about/TeamGrid.astro';
+import AboutCTA from '../components/about/AboutCTA.astro';
+import { seo, founder } from '../data/about.js';
+import { company } from '../data/site.js';
+
+const site = Astro.site?.href ?? 'https://www.vistaarwebx.com/';
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'AboutPage',
+  name: seo.title,
+  description: seo.description,
+  url: new URL('/about', site).href,
+  mainEntity: {
+    '@type': 'Organization',
+    name: company.name,
+    legalName: company.legalName,
+    url: site,
+    foundingDate: '2019',
+    slogan: 'Strategy. System. Scale.',
+    founder: { '@type': 'Person', name: founder.name, jobTitle: founder.role },
+    telephone: '+91 95599 03700',
+    email: company.email.display,
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: 'C-8, Sahyog Parisar, E-8 Trilanga Main Road, Shahpura',
+      addressLocality: 'Bhopal',
+      addressRegion: 'Madhya Pradesh',
+      addressCountry: 'IN',
+    },
+    areaServed: 'IN',
+  },
+};
+---
+
+<BaseLayout
+  title={seo.title}
+  description={seo.description}
+  ogImage={seo.ogImage}
+  ogImageAlt={seo.ogImageAlt}
+  jsonLd={jsonLd}
+>
+  <AboutHero />
+  <WhoWeAre />
+  <FounderOrigin />
+  <Timeline />
+  <HowWeWork />
+  <PrinciplesGrid />
+  <VisionMission />
+  <NumbersStrip />
+  <WhoWeWorkWith />
+  <TeamGrid />
+  <AboutCTA />
+</BaseLayout>

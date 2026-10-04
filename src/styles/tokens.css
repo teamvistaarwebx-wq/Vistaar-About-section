@@ -1,0 +1,79 @@
+/*
+ * Vistaar WebX design tokens.
+ * Source: Figma "Vistaar-webx" (file MEwO0dgx35SIadh1MDorBQ, section 7:206).
+ * Variables published in Figma: "brand color" #b41f24, "red" #B9181B.
+ * Everything else below was read from the home page frames (7:654).
+ */
+:root {
+  /* Colour */
+  --color-brand: #b41f24;          /* Figma var: brand color */
+  --color-red: #b9181b;            /* Figma var: red (hero accent, glow) */
+  --color-brand-rgb: 180 31 36;
+  --color-red-rgb: 185 24 27;
+  --color-ink: #000;
+  --color-text: rgb(0 0 0 / 0.8);  /* body copy on cards */
+  --color-text-soft: rgb(0 0 0 / 0.7); /* eyebrows, footer labels */
+  --color-text-muted: rgb(0 0 0 / 0.6); /* form labels, meta */
+  --color-numeral: #404040;        /* stat numerals */
+  --color-bg: #fff;
+  --color-surface: #f6f5f3;        /* panels, footer, inputs */
+  --color-on-brand: #fff;
+  --color-line: rgb(0 0 0 / 0.12);
+  --color-glass: rgb(255 255 255 / 0.7);
+
+  /* Type */
+  --font-sans: 'Geist Variable', 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+
+  --fs-display: clamp(2.5rem, 1.6rem + 3.6vw, 4rem);   /* 64px hero */
+  --fs-h2: clamp(2rem, 1.45rem + 2.2vw, 3.5rem);        /* 56px section titles */
+  --fs-h3: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
+  --fs-card-title: 1.25rem;                              /* 20px */
+  --fs-lead: clamp(1.0625rem, 0.98rem + 0.35vw, 1.25rem); /* 20px */
+  --fs-body: 1rem;                                       /* 16px */
+  --fs-small: 0.875rem;                                  /* 14px */
+  --fs-eyebrow: clamp(0.8125rem, 0.75rem + 0.25vw, 1rem); /* 16px */
+  --fs-stat: clamp(3rem, 2.2rem + 3.2vw, 4rem);          /* 64px */
+
+  --lh-tight: 0.987;
+  --lh-heading: 1.1;
+  --lh-body: 1.4;
+  --lh-loose: 1.77;
+  --tracking-eyebrow: 0.11em;   /* 1.76px @ 16px */
+  --tracking-tight: -0.03em;    /* -0.6px @ 20px */
+
+  /* Space */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+  --space-section: clamp(4.5rem, 3rem + 6vw, 8.75rem);
+  --gutter: clamp(1rem, 0.4rem + 3vw, 2.5rem);
+  --container: 1446px; /* Figma content width on the 1728 frame */
+
+  /* Shape */
+  --radius-sm: 10px;    /* inputs */
+  --radius-md: 15px;    /* form card */
+  --radius-card: 20px;  /* cards, panels */
+  --radius-lg: 25px;    /* brand CTA card */
+  --radius-pill: 50px;  /* buttons, chips */
+  --dot: 9px;           /* red-dot motif */
+
+  /* Elevation */
+  --shadow-card: 0 -1px 16px rgb(0 0 0 / 0.07);
+  --shadow-float: 0 4px 48.8px rgb(0 0 0 / 0.11);
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 200ms;
+  --dur-base: 450ms;
+  --dur-slow: 800ms;
+}

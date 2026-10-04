@@ -1,0 +1,88 @@
+---
+/**
+ * Text wordmark built from the Figma lockup (7:656): "VISTAAR" in black,
+ * "WEBX" in brand red, "A Brand of Sanskaar Webx LLP" underneath.
+ * Interim: swap for the official logo SVG when it is exported from Figma.
+ */
+interface Props {
+  href?: string;
+  size?: 'md' | 'lg';
+}
+const { href = '/', size = 'md' } = Astro.props;
+---
+
+<a class:list={['logo', `logo--${size}`]} href={href} aria-label="Vistaar WebX home">
+  <span class="logo__mark" aria-hidden="true"></span>
+  <span class="logo__text" aria-hidden="true">
+    <span class="logo__name">Vistaar <span class="logo__accent">WebX</span></span>
+    <span class="logo__sub">A brand of Sanskaar Webx LLP</span>
+  </span>
+</a>
+
+<style>
+  .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--color-ink);
+    text-decoration: none;
+  }
+
+  .logo__mark {
+    position: relative;
+    flex: none;
+    width: 34px;
+    height: 34px;
+    border: 2.5px solid var(--color-ink);
+    border-radius: 50%;
+  }
+
+  .logo__mark::after {
+    content: '';
+    position: absolute;
+    top: 7px;
+    left: 7px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--color-brand);
+  }
+
+  .logo__text {
+    display: grid;
+    gap: 2px;
+  }
+
+  .logo__name {
+    font-size: 1.125rem;
+    font-weight: var(--fw-bold);
+    letter-spacing: 0.04em;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .logo__accent {
+    color: var(--color-brand);
+  }
+
+  .logo__sub {
+    font-size: 0.5625rem;
+    font-weight: var(--fw-medium);
+    letter-spacing: 0.06em;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .logo--lg .logo__mark {
+    width: 40px;
+    height: 40px;
+  }
+
+  .logo--lg .logo__name {
+    font-size: 1.3125rem;
+  }
+
+  .logo--lg .logo__sub {
+    font-size: 0.6875rem;
+  }
+</style>
