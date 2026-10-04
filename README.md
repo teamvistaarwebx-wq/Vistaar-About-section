@@ -18,7 +18,7 @@ npm run build    # static output in dist/
 | Page | `src/pages/about.astro` |
 | Sections | `src/components/about/*.astro` |
 | Scroll reveal + count-up | `src/scripts/reveal.js` |
-| Team photos (`name.webp` + playful `name-alt.webp` shown on hover) | `public/assets/about/team/` |
+| Team photos (`name.webp` + playful `name-alt.webp` shown on hover; shown black-and-white) | `public/assets/about/team/` |
 
 To add a missing portrait, drop a 480×528 WebP into `public/assets/about/team/` and set `photo` (and optionally `photoAlt`) for that person in `src/data/about.js`. For the founder section, set `founder.photo`.
 
@@ -28,3 +28,12 @@ The timeline is a port of the Framer `ScrollTimeline` code component, rebuilt in
 
 - **≥768px, motion allowed:** sticky rounded frame. Scrolling wipes each panel off to the left while its big year tips over, and the next panel wipes in. A progress line runs along the top, and the year scrubber is clickable and works with arrow keys and Home/End. The 2026 panel's chips burst in.
 - **<768px, `prefers-reduced-motion`, or no JS:** stacked colour cards that reveal on scroll, with no pinning.
+
+## Team showcase
+
+Modelled on the Firma template's team section. Portraits are shown in black and white and blended into the white page, with names beside them.
+
+- **≥768px, motion allowed:** the section pins and vertical scroll moves the row of people sideways, with a progress line bottom-left.
+- **<768px, reduced motion, or no JS:** the intro sits above a swipeable strip, with one person per snap on phones.
+
+It looks best with high-resolution cut-out portraits (transparent PNG/WebP, about 1200px tall). Until those exist, the current photos are filtered and edge-faded so the studio backdrop disappears.

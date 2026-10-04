@@ -1,0 +1,545 @@
+---
+/**
+ * Team showcase: a horizontal scroll gallery modelled on the Firma template's team section.
+ * Black-and-white portraits stand along the bottom edge and overlap slightly; each name sits
+ * in large type beside its portrait at alternating heights; a giant vertical outlined word sits
+ * behind the intro. Hovering a portrait swaps in the playful second take.
+ *
+ * Modes:
+ * - Pinned (≥ 768px, motion allowed, JS): vertical scroll drives the track sideways
+ *   (transform only) while the section is pinned; a progress line tracks it.
+ * - Native (< 768px, reduced motion, or no JS): the same track as a swipeable,
+ *   keyboard-scrollable horizontal scroller with scroll-snap. No pinning.
+ */
+import { team } from '../../data/about.js';
+
+const splitName = (name: string) => {
+  const [first, ...rest] = name.split(' ');
+  return { first, rest: rest.join(' ') };
+};
+const initials = (name: string) =>
+  name
+    .split(/\s+/)
+    .map((p) => p[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+---
+
+<section class="ts" aria-labelledby="team-title" data-team-showcase>
+  <div class="ts__pin">
+    <div class="ts__viewport" data-ts-viewport>
+      <div class="ts__track" data-ts-track>
+        <div class="ts__intro">
+          <span class="ts__ghost" aria-hidden="true">Team</span>
+          <div class="ts__intro-copy">
+            <p class="eyebrow">{team.eyebrow}</p>
+            <h2 class="section-title" id="team-title">{team.title}</h2>
+            <p class="ts__lede">{team.intro}</p>
+            <p class="ts__count">
+              <span class="ts__count-num">{team.members.length}</span> people
+              <span class="ts__hint ts__hint--scroll" aria-hidden="true">Scroll to meet them →</span>
+              <span class="ts__hint ts__hint--swipe" aria-hidden="true">Swipe to meet them →</span>
+            </p>
+          </div>
+        </div>
+
+        <ul
+          class="ts__list"
+          data-ts-list
+          tabindex="0"
+          aria-label="Team members, scroll sideways to see everyone"
+        >
+          {
+            team.members.map((m, i) => {
+              const { first, rest } = splitName(m.name);
+              return (
+                <li class:list={['ts__member', i % 2 ? 'ts__member--low' : 'ts__member--high']}>
+                  <figure class="ts__figure">
+                    {m.photo ? (
+                      <>
+                        <img
+                          class="ts__photo"
+                          src={m.photo}
+                          alt={`${m.name}, ${m.role}`}
+                          width="480"
+                          height="528"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                        {m.photoAlt && (
+                          <img
+                            class="ts__photo ts__photo--alt"
+                            src={m.photoAlt}
+                            alt=""
+                            width="480"
+                            height="528"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                        )}
+                      </>
+                    ) : (
+                      <svg
+                        class="ts__silhouette"
+                        viewBox="0 0 480 528"
+                        role="img"
+                        aria-label={`Portrait of ${m.name} coming soon`}
+                      >
+                        <circle cx="240" cy="190" r="88" />
+                        <path d="M60 528c0-120 80-200 180-200s180 80 180 200z" />
+                        <text x="240" y="470" text-anchor="middle">
+                          {initials(m.name)}
+                        </text>
+                      </svg>
+                    )}
+                  </figure>
+                  <div class="ts__meta">
+                    <span class="ts__index" aria-hidden="true">
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    <h3 class="ts__name">
+                      {first}
+                      {rest && (
+                        <>
+                          <br />
+                          {rest}
+                        </>
+                      )}
+                    </h3>
+                    <p class="ts__role">{m.role}</p>
+                  </div>
+                </li>
+              );
+            })
+          }
+        </ul>
+      </div>
+    </div>
+
+    <div class="ts__progress" aria-hidden="true">
+      <span class="ts__progress-fill" data-ts-fill></span>
+    </div>
+  </div>
+</section>
+
+<script>
+  const wide = window.matchMedia('(min-width: 768px)');
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  document.querySelectorAll<HTMLElement>('[data-team-showcase]').forEach((section) => {
+    const viewport = section.querySelector<HTMLElement>('[data-ts-viewport]')!;
+    const track = section.querySelector<HTMLElement>('[data-ts-track]')!;
+    const list = section.querySelector<HTMLElement>('[data-ts-list]')!;
+    const fill = section.querySelector<HTMLElement>('[data-ts-fill]');
+    let pinned = false;
+    let distance = 0;
+    let queued = false;
+
+    function measure() {
+      distance = Math.max(0, track.scrollWidth - viewport.clientWidth);
+      section.style.height = pinned ? `${distance + window.innerHeight}px` : '';
+    }
+
+    function update() {
+      queued = false;
+      if (pinned) {
+        const top = section.getBoundingClientRect().top;
+        const p = distance > 0 ? Math.min(1, Math.max(0, -top / distance)) : 0;
+        track.style.transform = `translate3d(${-p * distance}px, 0, 0)`;
+        if (fill) fill.style.transform = `scaleX(${p})`;
+      } else {
+        const max = list.scrollWidth - list.clientWidth;
+        if (fill) fill.style.transform = `scaleX(${max > 0 ? list.scrollLeft / max : 0})`;
+      }
+    }
+
+    function queue() {
+      if (!queued) {
+        queued = true;
+        requestAnimationFrame(update);
+      }
+    }
+
+    function applyMode() {
+      pinned = wide.matches && !reduce.matches;
+      section.classList.toggle('is-pinned', pinned);
+      list.tabIndex = pinned ? -1 : 0;
+      if (!pinned) track.style.transform = '';
+      measure();
+      update();
+    }
+
+    let listening = false;
+    new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !listening) {
+          window.addEventListener('scroll', queue, { passive: true });
+          listening = true;
+        } else if (!entry.isIntersecting && listening) {
+          window.removeEventListener('scroll', queue);
+          listening = false;
+        }
+        queue();
+      },
+      { rootMargin: '200px 0px' },
+    ).observe(section);
+
+    list.addEventListener('scroll', queue, { passive: true });
+    window.addEventListener('resize', () => {
+      measure();
+      queue();
+    });
+    // Lazy images change the track width as they load.
+    track.querySelectorAll('img').forEach((img) => img.addEventListener('load', () => (measure(), queue())));
+    wide.addEventListener('change', applyMode);
+    reduce.addEventListener('change', applyMode);
+    applyMode();
+  });
+</script>
+
+<style>
+  .ts {
+    --portrait-h: min(clamp(300px, 62vh, 600px), 105vw);
+    --portrait-w: calc(var(--portrait-h) * 480 / 528);
+    position: relative;
+    padding-block: var(--space-section) 0;
+    background: var(--color-bg);
+  }
+
+  .ts__pin {
+    position: relative;
+  }
+
+  /* ---------- Native mode (default): intro above a swipeable strip of people ---------- */
+  .ts__track {
+    display: flex;
+    flex-direction: column;
+    will-change: transform;
+  }
+
+  .ts__list {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    padding-inline: var(--gutter);
+    scroll-padding-inline: var(--gutter);
+  }
+
+  .ts__list::-webkit-scrollbar {
+    display: none;
+  }
+
+  .ts__list:focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: -2px;
+  }
+
+  /* Intro panel with the giant vertical outlined word */
+  .ts__intro {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    flex: none;
+    width: 100%;
+    max-width: calc(var(--container) + var(--gutter) * 2);
+    margin-inline: auto;
+    padding: 0 var(--gutter) var(--space-6);
+  }
+
+  .ts__ghost {
+    position: absolute;
+    left: -0.06em;
+    bottom: 0;
+    font-size: clamp(6rem, 4rem + 9vw, 15rem);
+    font-weight: var(--fw-bold);
+    line-height: 0.8;
+    letter-spacing: -0.03em;
+    color: transparent;
+    -webkit-text-stroke: 1px rgb(var(--color-brand-rgb) / 0.25);
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .ts__intro-copy {
+    position: relative;
+    display: grid;
+    gap: var(--space-4);
+    max-width: 34rem;
+    margin-left: clamp(3.5rem, 2rem + 8vw, 11rem);
+  }
+
+  .ts__lede {
+    font-size: var(--fs-lead);
+    font-weight: var(--fw-medium);
+    color: var(--color-text);
+  }
+
+  .ts__count {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2) var(--space-3);
+    margin-top: var(--space-4);
+    font-weight: var(--fw-semibold);
+    color: var(--color-text);
+  }
+
+  .ts__count-num {
+    font-size: var(--fs-stat);
+    line-height: var(--lh-tight);
+    color: var(--color-brand);
+  }
+
+  .ts__hint--scroll {
+    display: none;
+  }
+
+  .ts__hint {
+    flex-basis: 100%;
+    font-size: var(--fs-small);
+    font-weight: var(--fw-medium);
+    color: var(--color-text-muted);
+  }
+
+  /* Members: portrait + name beside it, overlapping their neighbour slightly */
+  .ts__list {
+    display: flex;
+    align-items: flex-end;
+  }
+
+  .ts__list::after {
+    content: '';
+    flex: none;
+    width: var(--gutter);
+  }
+
+  .ts__member {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    flex: none;
+    scroll-snap-align: center;
+  }
+
+  /* The person fills roughly the middle half of each photo, so pull neighbours in */
+  .ts__member + .ts__member {
+    margin-left: calc(var(--portrait-w) * -0.2);
+  }
+
+  .ts__figure {
+    position: relative;
+    flex: none;
+    width: var(--portrait-w);
+    height: var(--portrait-h);
+    margin: 0;
+  }
+
+  /* B&W portraits blended into the page: soft side edges hide the studio backdrop */
+  .ts__photo,
+  .ts__silhouette {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center bottom;
+  }
+
+  .ts__photo {
+    filter: grayscale(1) contrast(1.22) brightness(1.14);
+    mix-blend-mode: multiply;
+    /* Fade the sides and the top so the studio backdrop's edges disappear */
+    -webkit-mask-image:
+      linear-gradient(to right, transparent 0, #000 18%, #000 82%, transparent 100%),
+      linear-gradient(to bottom, transparent 0, #000 22%);
+    -webkit-mask-composite: source-in;
+    mask-image:
+      linear-gradient(to right, transparent 0, #000 18%, #000 82%, transparent 100%),
+      linear-gradient(to bottom, transparent 0, #000 22%);
+    mask-composite: intersect;
+    transition: opacity var(--dur-base) var(--ease-out);
+  }
+
+  .ts__photo--alt {
+    opacity: 0;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .ts__member:hover .ts__photo--alt {
+      opacity: 1;
+    }
+
+    .ts__member:hover .ts__photo:not(.ts__photo--alt):has(+ .ts__photo--alt) {
+      opacity: 0;
+    }
+  }
+
+  .ts__silhouette {
+    inset: auto 12% 0;
+    width: 76%;
+    height: auto;
+    fill: var(--color-surface);
+  }
+
+  .ts__silhouette text {
+    fill: var(--color-brand);
+    font-family: var(--font-sans);
+    font-size: 72px;
+    font-weight: var(--fw-semibold);
+  }
+
+  .ts__meta {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    gap: var(--space-2);
+    width: clamp(160px, 14vw, 220px);
+    margin-left: calc(var(--portrait-w) * -0.24); /* sits against the person's shoulder */
+  }
+
+  .ts__member--high .ts__meta {
+    margin-top: calc(var(--portrait-h) * 0.06);
+  }
+
+  .ts__member--low .ts__meta {
+    margin-top: calc(var(--portrait-h) * 0.32);
+  }
+
+  .ts__index {
+    font-size: var(--fs-small);
+    font-weight: var(--fw-bold);
+    letter-spacing: var(--tracking-eyebrow);
+    color: var(--color-brand);
+  }
+
+  .ts__name {
+    font-size: clamp(1.5rem, 1.1rem + 1.4vw, 2.5rem);
+    font-weight: var(--fw-semibold);
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+  }
+
+  .ts__role {
+    font-size: 0.75rem;
+    font-weight: var(--fw-bold);
+    letter-spacing: var(--tracking-eyebrow);
+    line-height: 1.3;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+
+  /* Progress line along the bottom-left (Firma-style) */
+  .ts__progress {
+    position: relative;
+    height: 2px;
+    margin: 0 var(--gutter);
+    background: var(--color-line);
+    overflow: hidden;
+  }
+
+  .ts__progress-fill {
+    position: absolute;
+    inset: 0;
+    background: var(--color-brand);
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+
+  /* ---------- Pinned mode ---------- */
+  .ts.is-pinned {
+    --portrait-h: clamp(360px, 78vh, 820px);
+    padding-block: 0;
+  }
+
+  .ts.is-pinned .ts__pin {
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    height: 100vh;
+    height: 100svh;
+    overflow: hidden;
+  }
+
+  .ts.is-pinned .ts__viewport {
+    overflow: hidden;
+  }
+
+  .ts.is-pinned .ts__track {
+    flex-direction: row;
+    align-items: flex-end;
+    width: max-content;
+    padding-left: max(var(--gutter), calc((100vw - var(--container)) / 2));
+    padding-right: 12vw;
+  }
+
+  .ts.is-pinned .ts__list {
+    overflow: visible;
+    padding-inline: 0;
+  }
+
+  .ts.is-pinned .ts__list::after {
+    display: none;
+  }
+
+  .ts.is-pinned .ts__intro {
+    align-self: stretch;
+    align-items: center;
+    width: min(42vw, 560px);
+    max-width: none;
+    margin: 0;
+    padding: 0 var(--space-7) 0 0;
+  }
+
+  .ts.is-pinned .ts__hint--scroll {
+    display: inline;
+  }
+
+  .ts.is-pinned .ts__hint--swipe {
+    display: none;
+  }
+
+  .ts.is-pinned .ts__progress {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 22vw;
+    margin: 0;
+  }
+
+  @media (min-width: 768px) {
+    .ts__meta {
+      width: clamp(180px, 16vw, 240px);
+    }
+  }
+
+  /* Phones: one person per snap, name overlaid on their own portrait's top corner */
+  @media (max-width: 767px) {
+    .ts__list {
+      gap: var(--space-4);
+    }
+
+    .ts__member + .ts__member {
+      margin-left: 0;
+    }
+
+    .ts__meta,
+    .ts__member--high .ts__meta,
+    .ts__member--low .ts__meta {
+      position: absolute;
+      top: var(--space-2);
+      left: 0;
+      width: 62%;
+      margin: 0;
+    }
+
+    .ts__figure {
+      margin-top: var(--space-8);
+    }
+  }
+</style>
