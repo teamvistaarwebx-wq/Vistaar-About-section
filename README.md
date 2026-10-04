@@ -37,3 +37,10 @@ Modelled on the Firma template's team section. Portraits are shown in black and 
 - **<768px, reduced motion, or no JS:** the intro sits above a swipeable strip, with one person per snap on phones.
 
 It looks best with high-resolution cut-out portraits (transparent PNG/WebP, about 1200px tall). Until those exist, the current photos are filtered and edge-faded so the studio backdrop disappears.
+
+## Eight principles
+
+This section is a port of the Framer `ImpactRow` code component, rebuilt in plain Astro with no React.
+
+- **≥1200px:** two rows of four. Hovering or tabbing to a card widens it to reveal a red panel built from the principle's own title (for example "Problems / before / services"), while its neighbours narrow. Leaving the row returns to the first card.
+- **<1200px:** an accordion with one card open per row. Tap or focus a card to open its panel.

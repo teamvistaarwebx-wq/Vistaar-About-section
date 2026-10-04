@@ -1,65 +1,151 @@
 ---
+/**
+ * Eight principles, as hover rows.
+ *
+ * Port of the Framer "ImpactRow" code component (framer.com/m/ImpactRow-iyCfOt.js) to plain
+ * Astro + CSS, no React: a row of cards where one is expanded at a time. Hover, focus or tap a
+ * card and it widens to reveal a panel beside its text while its neighbours narrow; leaving the
+ * row returns to the first card. Text columns keep a fixed width, so nothing reflows mid-animation.
+ *
+ * Adapted for this page:
+ * - 8 principles → two rows of four (≥1200px), widths derived from the row (container units).
+ * - The revealed panel is typographic, built from the principle's own title:
+ *   "Problems before services." → Problems / before / services (outlined).
+ * - < 1200px: stacked cards as an accordion, still one open per row: tap or focus a card to
+ *   reveal its panel below the text.
+ */
 import { principles } from '../../data/about.js';
+
+const rows = [principles.items.slice(0, 4), principles.items.slice(4, 8)];
+
+/** "Problems before services." → { lead: 'Problems', link: 'before', tail: 'services' } */
+const split = (title: string) => {
+  const m = title.replace(/\.$/, '').match(/^(\S+)\s+(before|with)\s+(\S+)$/i);
+  return m ? { lead: m[1], link: m[2], tail: m[3] } : null;
+};
 ---
 
-<section class="section principles" aria-labelledby="principles-title">
+<section class="section pr" aria-labelledby="principles-title">
   <div class="container">
-    <header class="section-head">
+    <header class="section-head section-head--split">
       <p class="eyebrow">{principles.eyebrow}</p>
       <h2 class="section-title" id="principles-title" data-reveal>{principles.title}</h2>
+      <p class="pr__hint" data-reveal>
+        <span class="pr__hint--hover">Hover or tab through a principle to open it.</span>
+        <span class="pr__hint--touch">Eight rules that shape every engagement.</span>
+      </p>
     </header>
 
-    <ol class="principles__grid">
+    <div class="pr__rows">
       {
-        principles.items.map((item, i) => (
-          <li class="principles__card" data-reveal style={`--reveal-i: ${i % 4}`}>
-            <span class="principles__num" aria-hidden="true">
-              {String(i + 1).padStart(2, '0')}
-            </span>
-            <h3 class="principles__title">{item.title}</h3>
-            <p class="principles__text">{item.text}</p>
-          </li>
+        rows.map((row, r) => (
+          <ol class="pr__row" start={r * 4 + 1} data-impact-row data-reveal style={`--reveal-i: ${r}`}>
+            {row.map((item, k) => {
+              const i = r * 4 + k;
+              const parts = split(item.title);
+              return (
+                <li class:list={['pr__card', { 'is-active': k === 0 }]} tabindex="0" data-impact-card>
+                  <div class="pr__inner">
+                    <div class="pr__text">
+                      <span class="pr__num" aria-hidden="true">
+                        {String(i + 1).padStart(2, '0')}
+                      </span>
+                      <div class="pr__copy">
+                        <h3 class="pr__title">{item.title}</h3>
+                        <p class="pr__body">{item.text}</p>
+                      </div>
+                    </div>
+                    <div class="pr__panel" aria-hidden="true">
+                      {parts ? (
+                        <p class="pr__pair">
+                          <span class="pr__lead">{parts.lead}</span>
+                          <span class="pr__link">{parts.link}</span>
+                          <span class="pr__tail">{parts.tail}</span>
+                        </p>
+                      ) : (
+                        <p class="pr__pair">
+                          <span class="pr__lead">{item.title}</span>
+                        </p>
+                      )}
+                      <span class="pr__panel-num">{String(i + 1).padStart(2, '0')}</span>
+                    </div>
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
         ))
       }
-    </ol>
+    </div>
   </div>
 </section>
 
+<script>
+  // Mirrors ImpactRow: hover / pointer / focus sets the active card; leaving the row
+  // resets to the default (first) card. Touch taps fire pointerenter, so tap works too.
+  const DEFAULT_INDEX = 0;
+
+  document.querySelectorAll<HTMLElement>('[data-impact-row]').forEach((row) => {
+    const cards = [...row.querySelectorAll<HTMLElement>('[data-impact-card]')];
+
+    const setActive = (index: number) => {
+      cards.forEach((card, i) => card.classList.toggle('is-active', i === index));
+    };
+
+    cards.forEach((card, i) => {
+      card.addEventListener('pointerenter', () => setActive(i));
+      card.addEventListener('focus', () => setActive(i));
+    });
+
+    // Touch "leaves" as soon as the finger lifts, so only a mouse leaving resets the row.
+    row.addEventListener('pointerleave', (e) => {
+      if (e.pointerType === 'mouse' && !row.contains(document.activeElement)) setActive(DEFAULT_INDEX);
+    });
+    row.addEventListener('focusout', (e) => {
+      if (!row.contains(e.relatedTarget as Node)) setActive(DEFAULT_INDEX);
+    });
+  });
+</script>
+
 <style>
-  .principles__grid {
+  .pr__hint {
+    max-width: 30rem;
+    font-size: var(--fs-body);
+    font-weight: var(--fw-medium);
+    color: var(--color-text-muted);
+  }
+
+  .pr__hint--hover {
+    display: none;
+  }
+
+  .pr__rows {
     display: grid;
     gap: var(--space-3);
   }
 
-  .principles__card {
+  /* ---------- Shared card pieces ---------- */
+  .pr__card {
     position: relative;
-    display: grid;
-    align-content: start;
-    gap: var(--space-2);
-    padding: var(--space-5);
-    border: 1px solid var(--color-line);
-    border-radius: var(--radius-card);
-    background: var(--color-bg);
-    transition: transform var(--dur-base) var(--ease-out), opacity var(--dur-slow) var(--ease-out);
+    overflow: hidden;
+    border-radius: 24px; /* ImpactRow "Radius" */
+    background: var(--color-surface);
+    outline: none;
   }
 
-  .principles__card::after {
-    content: '';
-    position: absolute;
-    inset: -1px;
-    border: 1px solid var(--color-brand);
-    border-radius: inherit;
-    opacity: 0;
-    transition: opacity var(--dur-base) var(--ease-out);
-    pointer-events: none;
+  .pr__card:focus-visible {
+    box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-brand);
   }
 
-  .principles__card:hover::after {
-    opacity: 1;
+  .pr__text {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--space-5);
   }
 
-  .principles__num {
-    margin-bottom: var(--space-4);
+  .pr__num {
     font-size: clamp(2rem, 1.6rem + 1.4vw, 3rem);
     font-weight: var(--fw-semibold);
     line-height: 1;
@@ -67,32 +153,267 @@ import { principles } from '../../data/about.js';
     color: var(--color-brand);
   }
 
-  .principles__title {
-    font-size: var(--fs-card-title);
-    font-weight: var(--fw-semibold);
-    line-height: 1.3;
+  .pr__copy {
+    display: grid;
+    gap: var(--space-2);
   }
 
-  .principles__text {
-    font-size: var(--fs-body);
+  .pr__title {
+    font-size: var(--fs-card-title);
+    font-weight: var(--fw-semibold);
+    line-height: 1.25;
+    color: var(--color-ink);
+  }
+
+  .pr__body {
+    font-size: var(--fs-small);
     font-weight: var(--fw-medium);
+    line-height: 1.5;
     color: var(--color-text);
   }
 
-  @media (min-width: 768px) {
-    .principles__grid {
+  .pr__panel {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    overflow: hidden;
+    padding: var(--space-5);
+    border-radius: 14px; /* ImpactRow "Image R" */
+  }
+
+  .pr__pair {
+    display: grid;
+    justify-items: start;
+    gap: 2px;
+    font-weight: var(--fw-bold);
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+  }
+
+  .pr__link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-block: var(--space-2);
+    font-size: 0.75rem;
+    font-weight: var(--fw-bold);
+    letter-spacing: var(--tracking-eyebrow);
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .pr__link::before {
+    content: '';
+    width: 24px;
+    height: 1.5px;
+    background: currentColor;
+  }
+
+  .pr__panel-num {
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-5);
+    font-size: var(--fs-small);
+    font-weight: var(--fw-bold);
+    letter-spacing: var(--tracking-eyebrow);
+  }
+
+  /* ---------- Stacked (default, < 1200px): accordion, one open per row ---------- */
+  .pr__row {
+    display: grid;
+    gap: var(--space-3);
+    align-items: start;
+  }
+
+  .pr__card {
+    cursor: pointer;
+  }
+
+  .pr__inner {
+    display: grid;
+    grid-template-rows: auto 0fr;
+    padding: 12px; /* ImpactRow "Padding" */
+    transition: grid-template-rows 500ms var(--ease-out);
+  }
+
+  .pr__card.is-active .pr__inner {
+    grid-template-rows: auto 1fr;
+  }
+
+  .pr__text {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2) var(--space-4);
+    padding: var(--space-4);
+  }
+
+  .pr__copy {
+    flex: 1 1 14rem;
+  }
+
+  .pr__panel {
+    min-height: 0;
+    padding: 0 var(--space-5);
+    background: var(--color-brand);
+    color: var(--color-on-brand);
+    transition:
+      padding 500ms var(--ease-out),
+      opacity 400ms var(--ease-out);
+    opacity: 0;
+  }
+
+  .pr__card.is-active .pr__panel {
+    padding-block: var(--space-6) var(--space-5);
+    opacity: 1;
+  }
+
+  .pr__lead,
+  .pr__tail {
+    font-size: clamp(1.625rem, 1.2rem + 1.8vw, 2.25rem);
+  }
+
+  .pr__lead {
+    color: var(--color-on-brand);
+  }
+
+  .pr__tail {
+    color: transparent;
+    -webkit-text-stroke: 1.2px var(--color-on-brand);
+  }
+
+  .pr__link,
+  .pr__panel-num {
+    color: rgb(255 255 255 / 0.85);
+  }
+
+  @media (min-width: 768px) and (max-width: 1199px) {
+    .pr__row {
       grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .pr__text {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .pr__copy {
+      flex: none;
     }
   }
 
-  @media (min-width: 1024px) {
-    .principles__grid {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 18px;
+  /* ---------- Hover row (≥ 1200px): the ImpactRow expand interaction ---------- */
+  @media (min-width: 1200px) {
+    .pr__hint--hover {
+      display: inline;
     }
 
-    .principles__card {
-      min-height: 280px;
+    .pr__hint--touch {
+      display: none;
+    }
+
+    .pr__rows {
+      gap: 8px;
+    }
+
+    .pr__row {
+      --n: 4;
+      --gap: 8px; /* ImpactRow "Card Gap" */
+      --pad: 12px; /* ImpactRow "Padding" */
+      --inner-gap: 24px; /* ImpactRow "Text ↔ Image" */
+      --panel: 26cqw; /* revealed panel width ("Image W") */
+      --collapsed: calc((100cqw - var(--panel) - var(--inner-gap) - (var(--n) - 1) * var(--gap)) / var(--n));
+      container-type: inline-size;
+      display: flex;
+      gap: var(--gap);
+      height: clamp(340px, 26vw, 380px); /* ImpactRow "Height" */
+    }
+
+    .pr__card {
+      flex: 0 0 auto;
+      width: var(--collapsed);
+      height: 100%;
+      cursor: pointer;
+      transition: width 600ms var(--ease-out);
+    }
+
+    .pr__card.is-active {
+      z-index: 2;
+      width: calc(var(--collapsed) + var(--inner-gap) + var(--panel));
+    }
+
+    /* Inner content is always laid out at the expanded size; the card clips it. */
+    .pr__inner,
+    .pr__card.is-active .pr__inner {
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
+      gap: var(--inner-gap);
+      width: calc(var(--collapsed) + var(--inner-gap) + var(--panel));
+      height: 100%;
+      min-height: 0;
+      padding: var(--pad);
+    }
+
+    .pr__title {
+      font-size: 1.125rem;
+    }
+
+    .pr__text {
+      flex-direction: column;
+      flex-wrap: nowrap;
+      align-items: flex-start;
+      flex: 0 0 auto;
+      width: calc(var(--collapsed) - var(--pad) * 2);
+      padding: 20px var(--space-3); /* ImpactRow "Text P Y" */
+    }
+
+    .pr__panel {
+      order: 0;
+      flex: 0 0 auto;
+      width: var(--panel);
+      min-height: 0;
+      padding: var(--space-5);
+      opacity: 0.4;
+      transform: translate3d(24px, 0, 0) scale(0.97);
+      transform-origin: left center;
+      transition:
+        opacity 500ms var(--ease-out),
+        transform 600ms var(--ease-out);
+    }
+
+    .pr__card.is-active .pr__panel {
+      padding: var(--space-5);
+      opacity: 1;
+      transform: none;
+      transition-delay: 80ms;
+    }
+
+    .pr__copy {
+      flex: none;
+    }
+
+    .pr__lead,
+    .pr__tail {
+      font-size: clamp(1.75rem, 2.6cqw, 2.75rem);
+    }
+
+    /* Collapsed cards fade their body copy slightly so the open one leads */
+    .pr__card .pr__body {
+      transition: opacity var(--dur-base) var(--ease-out);
+    }
+
+    .pr__row:has(.is-active) .pr__card:not(.is-active) .pr__body {
+      opacity: 0.75;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pr__card,
+    .pr__inner,
+    .pr__panel {
+      transition: none !important;
     }
   }
 </style>
