@@ -28,13 +28,44 @@ export const whoWeAre = {
   intro:
     'We work with businesses, institutions, development organisations and public-sector teams. We help them see where they stand, decide what needs to change, build the right strategy and systems, and communicate clearly.',
   disciplinesLabel: 'Our work sits where six disciplines meet.',
+  disciplinesNote: 'They work as one system. Every engagement uses the combination its problem needs.',
+  /**
+   * Six disciplines, shown as a clickable list beside a changing visual.
+   * - covers: what the discipline covers (profile §5 "Six Capability Areas")
+   * - image:  optional photo for the visual panel, e.g. '/assets/about/disciplines/01-brand.webp';
+   *           null shows the branded typographic panel instead
+   */
   disciplines: [
-    { name: 'Brand', detail: 'Strategy · Positioning · Naming · Identity · Packaging' },
-    { name: 'Digital', detail: 'Website strategy · UI/UX · Shopify · E-commerce · Web apps' },
-    { name: 'Growth', detail: 'Meta Ads · Google Ads · Funnels · Creative testing · SEO' },
-    { name: 'Research', detail: 'Field research · Impact assessment · Programme evaluation' },
-    { name: 'Communication', detail: 'Content strategy · Social media · Public communication' },
-    { name: 'Technology', detail: 'AI workflows · Custom AI tools · Knowledge systems · Automation' },
+    {
+      name: 'Brand',
+      covers: ['Brand strategy', 'Positioning', 'Naming', 'Identity', 'Guidelines', 'Packaging', 'Campaign direction'],
+      image: null,
+    },
+    {
+      name: 'Digital',
+      covers: ['Website strategy', 'UI/UX', 'WordPress', 'Shopify', 'E-commerce', 'Custom web apps', 'Conversion'],
+      image: null,
+    },
+    {
+      name: 'Growth',
+      covers: ['Meta Ads', 'Google Ads', 'Funnels', 'Creative testing', 'Attribution', 'SEO', 'Growth experiments'],
+      image: null,
+    },
+    {
+      name: 'Research',
+      covers: ['Field research', 'Impact assessment', 'Programme evaluation', 'Government and CSR consulting', 'Reports'],
+      image: null,
+    },
+    {
+      name: 'Communication',
+      covers: ['Content strategy', 'Social media', 'Reels and UGC', 'Photography and video', 'Public communication'],
+      image: null,
+    },
+    {
+      name: 'Technology',
+      covers: ['AI workflows', 'Custom AI tools', 'Knowledge systems', 'Internal copilots', 'Reporting automation'],
+      image: null,
+    },
   ],
 };
 

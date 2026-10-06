@@ -44,3 +44,9 @@ This section is a port of the Framer `ImpactRow` code component, rebuilt in plai
 
 - **≥1200px:** two rows of four. Hovering or tabbing to a card widens it to reveal a red panel built from the principle's own title (for example "Problems / before / services"), while its neighbours narrow. Leaving the row returns to the first card.
 - **<1200px:** an accordion with one card open per row. Tap or focus a card to open its panel.
+
+## Six disciplines (Who we are)
+
+A clickable list beside a changing visual. Click, tap, hover (mouse) or arrow-key a row: a black pill slides behind it, the visual on the left wipes to that discipline, and its "what it covers" list appears under the visual. It is built as an accessible vertical tablist.
+
+To use photos, set `image` for each discipline in `src/data/about.js` (for example `'/assets/about/disciplines/01-brand.webp'`, 4:5 portrait, at least 840px wide). Without an image, a branded panel with rings is shown.

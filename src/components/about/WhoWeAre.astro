@@ -1,5 +1,19 @@
 ---
+/**
+ * Who we are + six disciplines explorer.
+ *
+ * Left: a visual panel with the active discipline's "what it covers" underneath.
+ * Right: numbered rows "(01) Brand →". Clicking, tapping, hovering (mouse) or arrowing to a
+ * row makes it active: a black pill slides behind it and the visual on the left changes
+ * (the new panel wipes up from the bottom while the old one fades back).
+ *
+ * Built as an accessible vertical tablist: rows are tabs, each discipline is a tabpanel.
+ * A discipline's `image` (src/data/about.js) fills the visual; without one, a branded
+ * typographic panel is shown.
+ */
 import { whoWeAre } from '../../data/about.js';
+
+const pad = (i: number) => String(i + 1).padStart(2, '0');
 ---
 
 <section class="section who" aria-labelledby="who-title">
@@ -10,95 +24,540 @@ import { whoWeAre } from '../../data/about.js';
       <p class="section-lede" data-reveal>{whoWeAre.intro}</p>
     </header>
 
-    <div class="who__panel">
-      <p class="who__label">{whoWeAre.disciplinesLabel}</p>
-      <ul class="who__grid">
+    <div class="dx" data-dx>
+      <div class="dx__stage">
         {
           whoWeAre.disciplines.map((d, i) => (
-            <li class="who__card" data-reveal style={`--reveal-i: ${i % 3}`}>
-              <span class="who__num" aria-hidden="true">
-                {String(i + 1).padStart(2, '0')}
-              </span>
-              <h3 class="who__name">{d.name}</h3>
-              <p class="who__detail">{d.detail}</p>
-            </li>
+            <div
+              class:list={['dx__panel', `dx__panel--${i % 2 ? 'ink' : 'brand'}`, { 'is-active': i === 0 }]}
+              id={`dx-panel-${i}`}
+              role="tabpanel"
+              aria-labelledby={`dx-tab-${i}`}
+              data-dx-panel={i}
+              style={`--i: ${i}`}
+            >
+              <div class="dx__visual">
+                {d.image ? (
+                  <img
+                    class="dx__img"
+                    src={d.image}
+                    alt=""
+                    width="840"
+                    height="1000"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                ) : (
+                  <div class="dx__art" aria-hidden="true">
+                    <span class="dx__rings" />
+                    <span class="dx__dot" />
+                    <span class="dx__art-num">{pad(i)}</span>
+                    <span class="dx__art-name">{d.name}</span>
+                  </div>
+                )}
+              </div>
+              <div class="dx__content">
+                <h3 class="dx__title">
+                  <span class="dx__title-num" aria-hidden="true">
+                    ({pad(i)})
+                  </span>
+                  {d.name}
+                </h3>
+                <ul class="dx__covers" aria-label={`What ${d.name} covers`}>
+                  {d.covers.map((c) => (
+                    <li>{c}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
           ))
         }
-      </ul>
+      </div>
+
+      <div class="dx__side">
+        <p class="dx__label">{whoWeAre.disciplinesLabel}</p>
+        <div class="dx__list" role="tablist" aria-label="Six disciplines" aria-orientation="vertical">
+          <span class="dx__pill" aria-hidden="true" data-dx-pill></span>
+          {
+            whoWeAre.disciplines.map((d, i) => (
+              <button
+                class:list={['dx__row', { 'is-active': i === 0 }]}
+                type="button"
+                role="tab"
+                id={`dx-tab-${i}`}
+                aria-selected={i === 0 ? 'true' : 'false'}
+                aria-controls={`dx-panel-${i}`}
+                tabindex={i === 0 ? 0 : -1}
+                data-dx-tab={i}
+              >
+                <span class="dx__row-num">({pad(i)})</span>
+                <span class="dx__row-name">{d.name}</span>
+                <svg class="dx__arrow" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+                  <path d="M4 12h15M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </button>
+            ))
+          }
+        </div>
+        <p class="dx__note">{whoWeAre.disciplinesNote}</p>
+      </div>
     </div>
   </div>
 </section>
 
+<script>
+  document.querySelectorAll<HTMLElement>('[data-dx]').forEach((root) => {
+    const tabs = [...root.querySelectorAll<HTMLButtonElement>('[data-dx-tab]')];
+    const panels = [...root.querySelectorAll<HTMLElement>('[data-dx-panel]')];
+    const pill = root.querySelector<HTMLElement>('[data-dx-pill]');
+    const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+    let active = 0;
+
+    function placePill() {
+      const tab = tabs[active];
+      if (!pill || !tab) return;
+      pill.style.transform = `translate3d(0, ${tab.offsetTop}px, 0)`;
+      pill.style.height = `${tab.offsetHeight}px`;
+      pill.classList.add('is-ready');
+    }
+
+    function select(i: number, focus = false) {
+      if (i === active) {
+        if (focus) tabs[i].focus();
+        return;
+      }
+      const prev = active;
+      active = i;
+      tabs.forEach((tab, k) => {
+        const on = k === i;
+        tab.classList.toggle('is-active', on);
+        tab.setAttribute('aria-selected', String(on));
+        tab.tabIndex = on ? 0 : -1;
+      });
+      panels.forEach((panel, k) => {
+        panel.classList.toggle('is-active', k === i);
+        panel.classList.toggle('is-leaving', k === prev);
+      });
+      // Clear the leaving state once the wipe has finished.
+      window.setTimeout(() => panels[prev]?.classList.remove('is-leaving'), 800);
+      placePill();
+      if (focus) tabs[i].focus();
+    }
+
+    const stage = root.querySelector<HTMLElement>('.dx__stage');
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    tabs.forEach((tab, i) => {
+      tab.addEventListener('click', () => {
+        select(i);
+        // On stacked (phone) layouts the visual sits above the list: bring it back into view.
+        if (stage && stage.getBoundingClientRect().top < 0) {
+          stage.scrollIntoView({ block: 'start', behavior: reduce.matches ? 'auto' : 'smooth' });
+        }
+      });
+      tab.addEventListener('pointerenter', (e) => {
+        if (e.pointerType === 'mouse' && finePointer.matches) select(i);
+      });
+      tab.addEventListener('keydown', (e) => {
+        const n = tabs.length;
+        let next = -1;
+        if (e.key === 'ArrowDown' || e.key === 'ArrowRight') next = (i + 1) % n;
+        else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') next = (i - 1 + n) % n;
+        else if (e.key === 'Home') next = 0;
+        else if (e.key === 'End') next = n - 1;
+        if (next < 0) return;
+        e.preventDefault();
+        select(next, true);
+      });
+    });
+
+    root.classList.add('is-enhanced');
+    placePill();
+    window.addEventListener('resize', placePill);
+    document.fonts?.ready.then(placePill);
+  });
+</script>
+
 <style>
-  /* Panel + white cards follow the home "What we do" block (Figma 7:725). */
-  .who__panel {
-    padding: clamp(var(--space-4), 5vw, 76px) clamp(var(--space-4), 6vw, 103px);
+  /* ---------- Layout ---------- */
+  .dx {
+    display: grid;
+    gap: var(--space-6);
+    padding: clamp(var(--space-4), 4vw, 72px);
     border-radius: var(--radius-card);
     background: var(--color-surface);
   }
 
-  .who__label {
-    margin-bottom: var(--space-5);
+  @media (min-width: 900px) {
+    .dx {
+      grid-template-columns: minmax(280px, 400px) minmax(0, 1fr);
+      gap: clamp(var(--space-7), 5vw, 80px);
+      align-items: start;
+    }
+  }
+
+  /* ---------- Stage (visual + content); panels share one grid cell ---------- */
+  .dx__stage {
+    display: grid;
+    scroll-margin-top: var(--space-4);
+  }
+
+  .dx__panel {
+    grid-area: 1 / 1;
+    display: grid;
+    gap: var(--space-5);
+    align-content: start;
+  }
+
+  .dx__visual {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 16 / 9;
+    border-radius: var(--radius-card);
+    background: var(--color-ink);
+  }
+
+  @media (min-width: 900px) {
+    .dx__visual {
+      aspect-ratio: 34 / 40; /* reference image proportion */
+    }
+  }
+
+  .dx__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Branded panel: concentric rings (red-dot motif), big number and the discipline name */
+  .dx__panel--brand .dx__visual {
+    background: radial-gradient(120% 90% at 30% 110%, var(--color-red) 0%, var(--color-brand) 55%, color-mix(in srgb, var(--color-brand) 65%, var(--color-ink)) 100%);
+  }
+
+  .dx__panel--ink .dx__visual {
+    background: radial-gradient(120% 90% at 70% 110%, color-mix(in srgb, var(--color-ink) 82%, var(--color-bg)) 0%, var(--color-ink) 60%);
+  }
+
+  .dx__art {
+    position: absolute;
+    inset: 0;
+    color: var(--color-on-brand);
+  }
+
+  .dx__rings {
+    position: absolute;
+    inset: 0;
+    --rx: calc(35% + var(--i) * 9%);
+    --ry: calc(30% + var(--i) * 4%);
+    background: repeating-radial-gradient(
+      circle at var(--rx) var(--ry),
+      transparent 0 34px,
+      rgb(255 255 255 / 0.14) 34px 35.5px
+    );
+    transform-origin: var(--rx) var(--ry);
+  }
+
+  .dx__dot {
+    position: absolute;
+    left: calc(35% + var(--i) * 9%);
+    top: calc(30% + var(--i) * 4%);
+    width: 14px;
+    height: 14px;
+    margin: -7px 0 0 -7px;
+    border-radius: 50%;
+    background: var(--color-on-brand);
+    box-shadow: 0 0 0 8px rgb(255 255 255 / 0.18);
+  }
+
+  .dx__panel--ink .dx__dot {
+    background: var(--color-brand);
+    box-shadow: 0 0 0 8px rgb(var(--color-brand-rgb) / 0.35);
+  }
+
+  .dx__art-num {
+    position: absolute;
+    top: var(--space-5);
+    left: var(--space-5);
+    font-size: var(--fs-small);
+    font-weight: var(--fw-bold);
+    letter-spacing: var(--tracking-eyebrow);
+    opacity: 0.85;
+  }
+
+  .dx__art-name {
+    position: absolute;
+    left: var(--space-5);
+    right: var(--space-5);
+    bottom: var(--space-5);
+    font-size: clamp(2rem, 1.4rem + 2.4vw, 3.25rem);
+    font-weight: var(--fw-semibold);
+    line-height: 1;
+    letter-spacing: -0.03em;
+    overflow-wrap: anywhere;
+  }
+
+  /* Content under the visual */
+  .dx__content {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .dx__title {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+    font-size: var(--fs-h3);
+    font-weight: var(--fw-semibold);
+    line-height: 1.2;
+  }
+
+  .dx__title-num {
+    font-size: var(--fs-small);
+    font-weight: var(--fw-bold);
+    color: var(--color-brand);
+  }
+
+  .dx__covers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .dx__covers li {
+    padding: 5px 12px;
+    border: 1px solid rgb(var(--color-brand-rgb) / 0.3);
+    border-radius: var(--radius-pill);
+    background: var(--color-bg);
+    font-size: 0.8125rem;
+    font-weight: var(--fw-medium);
+    color: var(--color-text);
+  }
+
+  /* ---------- Panel switching (JS adds .is-enhanced; without JS all panels stack) ---------- */
+  .dx:not(.is-enhanced) .dx__stage {
+    gap: var(--space-6);
+  }
+
+  .dx:not(.is-enhanced) .dx__panel {
+    grid-area: auto;
+  }
+
+  .dx.is-enhanced .dx__panel {
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .dx.is-enhanced .dx__panel.is-active,
+  .dx.is-enhanced .dx__panel.is-leaving {
+    visibility: visible;
+  }
+
+  .dx.is-enhanced .dx__panel.is-active {
+    z-index: 2;
+    pointer-events: auto;
+  }
+
+  .dx.is-enhanced .dx__panel.is-leaving {
+    z-index: 1;
+  }
+
+  /* Incoming visual wipes up from the bottom; its art settles in */
+  .dx.is-enhanced .dx__visual {
+    clip-path: inset(100% 0 0 0 round var(--radius-card));
+    transition: clip-path 700ms var(--ease-out);
+  }
+
+  .dx.is-enhanced .is-active .dx__visual,
+  .dx.is-enhanced .is-leaving .dx__visual {
+    clip-path: inset(0 0 0 0 round var(--radius-card));
+  }
+
+  .dx.is-enhanced .dx__img,
+  .dx.is-enhanced .dx__rings {
+    transform: scale(1.12);
+    transition: transform 900ms var(--ease-out);
+  }
+
+  .dx.is-enhanced .is-active .dx__img,
+  .dx.is-enhanced .is-active .dx__rings {
+    transform: none;
+  }
+
+  .dx.is-enhanced .dx__art-name,
+  .dx.is-enhanced .dx__art-num {
+    opacity: 0;
+    transform: translate3d(0, 24px, 0);
+    transition:
+      opacity 500ms var(--ease-out),
+      transform 600ms var(--ease-out);
+  }
+
+  .dx.is-enhanced .is-active .dx__art-name,
+  .dx.is-enhanced .is-active .dx__art-num {
+    opacity: 1;
+    transform: none;
+    transition-delay: 220ms;
+  }
+
+  .dx.is-enhanced .is-active .dx__art-num {
+    opacity: 0.85;
+  }
+
+  /* Content below fades and slides; leaving content fades out quickly */
+  .dx.is-enhanced .dx__content {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0);
+    transition:
+      opacity 250ms var(--ease-out),
+      transform 250ms var(--ease-out);
+  }
+
+  .dx.is-enhanced .is-active .dx__content {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 450ms var(--ease-out) 250ms,
+      transform 450ms var(--ease-out) 250ms;
+  }
+
+  /* ---------- Right side: rows ---------- */
+  .dx__side {
+    display: grid;
+    gap: var(--space-4);
+    align-content: start;
+  }
+
+  .dx__label {
     font-size: var(--fs-body);
     font-weight: var(--fw-semibold);
     color: var(--color-text);
   }
 
-  .who__grid {
+  .dx__list {
+    position: relative;
     display: grid;
-    gap: 17px 18px;
   }
 
-  .who__card {
+  .dx__row {
+    position: relative;
+    z-index: 1;
     display: grid;
-    align-content: start;
-    gap: var(--space-1);
-    padding: var(--space-5);
-    border-radius: var(--radius-card);
-    background: var(--color-bg);
-  }
-
-  .who__num {
-    display: inline-flex;
+    grid-template-columns: 4.5ch 1fr auto;
     align-items: center;
-    gap: 8px;
-    margin-bottom: var(--space-4);
-    font-size: var(--fs-small);
-    font-weight: var(--fw-bold);
-    letter-spacing: var(--tracking-eyebrow);
-    color: var(--color-brand);
-  }
-
-  .who__num::before {
-    content: '';
-    width: var(--dot);
-    height: var(--dot);
-    border-radius: 50%;
-    background: var(--color-brand);
-  }
-
-  .who__name {
-    font-size: var(--fs-card-title);
+    gap: var(--space-4);
+    width: 100%;
+    min-height: 64px;
+    padding: var(--space-3) var(--space-5);
+    border: 0;
+    border-bottom: 1px solid var(--color-line);
+    border-radius: 0;
+    background: none;
+    color: var(--color-ink);
+    font-size: var(--fs-body);
     font-weight: var(--fw-semibold);
-    line-height: var(--lh-body);
-    color: var(--color-text);
+    text-align: left;
+    cursor: pointer;
+    transition: color 350ms var(--ease-out);
   }
 
-  .who__detail {
+  .dx__row-num {
+    font-size: var(--fs-small);
+    font-variant-numeric: tabular-nums;
+    color: var(--color-text-muted);
+    transition: color 350ms var(--ease-out);
+  }
+
+  .dx__row-name {
+    font-size: clamp(1rem, 0.9rem + 0.5vw, 1.25rem);
+  }
+
+  .dx__arrow {
+    transition: transform 400ms var(--ease-out);
+  }
+
+  .dx__row:hover .dx__arrow {
+    transform: translateX(4px);
+  }
+
+  .dx__row.is-active {
+    color: var(--color-on-brand);
+    border-bottom-color: transparent;
+  }
+
+  .dx__row.is-active .dx__row-num {
+    color: rgb(255 255 255 / 0.75);
+  }
+
+  .dx__row.is-active .dx__arrow {
+    transform: translateX(4px) rotate(-45deg);
+  }
+
+  .dx__row:focus-visible {
+    outline: none;
+  }
+
+  .dx__row:focus-visible .dx__row-name {
+    outline: 2px solid currentColor;
+    outline-offset: 4px;
+    border-radius: 4px;
+  }
+
+  /* Without JS the active row carries its own pill */
+  .dx:not(.is-enhanced) .dx__row.is-active {
+    border-radius: 28px;
+    background: var(--color-ink);
+  }
+
+  /* Sliding black pill behind the active row (reference: active row as a floating dark pill) */
+  .dx__pill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 0;
+    border-radius: 28px;
+    background: var(--color-ink);
+    box-shadow: 0 24px 40px -12px rgb(0 0 0 / 0.35);
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      transform 550ms cubic-bezier(0.34, 1.3, 0.64, 1),
+      height 400ms var(--ease-out),
+      opacity 300ms var(--ease-out);
+  }
+
+  .dx__pill.is-ready {
+    opacity: 1;
+  }
+
+  .dx__note {
+    max-width: 34rem;
     font-size: var(--fs-small);
     font-weight: var(--fw-medium);
-    color: var(--color-text);
+    color: var(--color-text-muted);
   }
 
-  @media (min-width: 768px) {
-    .who__grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+  @media (min-width: 900px) {
+    .dx__row {
+      min-height: 96px;
+      grid-template-columns: 5ch 1fr auto;
+      padding-inline: var(--space-6);
+    }
+
+    .dx__row-name {
+      text-align: center;
     }
   }
 
-  @media (min-width: 1024px) {
-    .who__grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+  @media (prefers-reduced-motion: reduce) {
+    .dx.is-enhanced .dx__visual {
+      clip-path: none;
+    }
+
+    .dx.is-enhanced .dx__panel:not(.is-active) {
+      visibility: hidden;
     }
   }
 </style>
