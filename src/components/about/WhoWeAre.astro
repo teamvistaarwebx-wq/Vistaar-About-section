@@ -356,9 +356,13 @@ const pad = (i: number) => String(i + 1).padStart(2, '0');
   .dx__covers {
     display: flex;
     flex-wrap: wrap;
-    padding: 0 0 clamp(var(--space-4), 1.6vw, 26px) calc(2.5rem + var(--space-3));
-    font-size: var(--fs-body);
-    line-height: 1.6;
+    gap: var(--space-2) var(--space-5);
+    padding: var(--space-1) 0 clamp(var(--space-4), 1.6vw, 26px) calc(2.5rem + var(--space-3));
+    font-size: var(--fs-small);
+    font-weight: var(--fw-medium);
+    letter-spacing: 0.04em;
+    line-height: 1.4;
+    text-transform: uppercase;
     color: var(--color-text);
     opacity: 0;
     transition: opacity 250ms var(--ease-out);
@@ -369,10 +373,20 @@ const pad = (i: number) => String(i + 1).padStart(2, '0');
     transition: opacity 400ms var(--ease-out) 150ms;
   }
 
-  /* Reads as one sentence: "Meta Ads, Google Ads, Funnels, …" (commas never start a line) */
-  .dx__covers li:not(:last-child)::after {
-    content: ',';
-    margin-right: 0.35em;
+  /* Red-dot markers: "• BRAND STRATEGY  • POSITIONING  • NAMING" (each item keeps its own dot when wrapping) */
+  .dx__covers li {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .dx__covers li::before {
+    content: '';
+    flex: none;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-brand);
   }
 
   .dx__note {
