@@ -47,6 +47,6 @@ This section is a port of the Framer `ImpactRow` code component, rebuilt in plai
 
 ## Six disciplines (Who we are)
 
-The layout follows the design mockup. "Our work sits where six disciplines meet." runs across the top, a large visual sits on the left with the intro paragraph under it, and an accordion is on the right. The open discipline is a white card with its capabilities as red-dot tags and a big faded number cut off by the card's bottom edge. Closed rows show the name, a thin red line and the big faded number. Clicking a row, or using Enter/Space and the arrow keys, opens it and wipes the visual over to that discipline.
+Minimal layout. A visual on the left with the intro paragraph under it, and a hairline list on the right ("01  Brand  +"). Clicking a row, or using Enter/Space and the arrow keys, opens it: its number turns red, + becomes −, one plain line of what the discipline covers appears, and the visual crossfades to that discipline.
 
-To use photos, set `image` for each discipline in `src/data/about.js` (for example `'/assets/about/disciplines/01-brand.webp'`, square, at least 900px). Without an image, a branded panel with rings is shown.
+To use photos, set `image` for each discipline in `src/data/about.js` (for example `'/assets/about/disciplines/01-brand.webp'`, square, at least 900px). Without an image, a light placeholder panel with the name is shown.
