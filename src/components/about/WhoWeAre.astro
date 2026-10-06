@@ -1,15 +1,17 @@
 ---
 /**
- * Who we are + six disciplines explorer.
+ * Who we are + six disciplines.
  *
- * Left: a visual panel with the active discipline's "what it covers" underneath.
- * Right: numbered rows "(01) Brand →". Clicking, tapping, hovering (mouse) or arrowing to a
- * row makes it active: a black pill slides behind it and the visual on the left changes
- * (the new panel wipes up from the bottom while the old one fades back).
+ * Layout (from the design mockup):
+ * - Label across the top: "Our work sits where six disciplines meet."
+ * - Left: a large visual that changes with the open discipline, and the intro paragraph below it.
+ * - Right: an accordion. The open discipline is a white card with its capabilities as red-dot
+ *   tags and a big faded number cut off by the card's bottom edge; closed rows show the name,
+ *   a thin red rule and the big faded number.
  *
- * Built as an accessible vertical tablist: rows are tabs, each discipline is a tabpanel.
- * A discipline's `image` (src/data/about.js) fills the visual; without one, a branded
- * typographic panel is shown.
+ * Clicking a row (or Enter/Space, arrow keys between rows) opens it and wipes the visual over
+ * to that discipline. Accessible accordion: buttons with aria-expanded control each tag list.
+ * A discipline's `image` (src/data/about.js) fills the visual; without one a branded panel shows.
  */
 import { whoWeAre } from '../../data/about.js';
 
@@ -18,209 +20,198 @@ const pad = (i: number) => String(i + 1).padStart(2, '0');
 
 <section class="section who" aria-labelledby="who-title">
   <div class="container">
-    <header class="section-head section-head--split">
+    <header class="section-head">
       <p class="eyebrow">{whoWeAre.eyebrow}</p>
       <h2 class="section-title" id="who-title" data-reveal>{whoWeAre.title}</h2>
-      <p class="section-lede" data-reveal>{whoWeAre.intro}</p>
     </header>
 
     <div class="dx" data-dx>
-      <div class="dx__stage">
-        {
-          whoWeAre.disciplines.map((d, i) => (
-            <div
-              class:list={['dx__panel', `dx__panel--${i % 2 ? 'ink' : 'brand'}`, { 'is-active': i === 0 }]}
-              id={`dx-panel-${i}`}
-              role="tabpanel"
-              aria-labelledby={`dx-tab-${i}`}
-              data-dx-panel={i}
-              style={`--i: ${i}`}
-            >
-              <div class="dx__visual">
-                {d.image ? (
-                  <img
-                    class="dx__img"
-                    src={d.image}
-                    alt=""
-                    width="840"
-                    height="1000"
-                    loading="lazy"
-                    decoding="async"
-                  />
-                ) : (
-                  <div class="dx__art" aria-hidden="true">
-                    <span class="dx__rings" />
-                    <span class="dx__dot" />
-                    <span class="dx__art-num">{pad(i)}</span>
-                    <span class="dx__art-name">{d.name}</span>
-                  </div>
-                )}
-              </div>
-              <div class="dx__content">
-                <h3 class="dx__title">
-                  <span class="dx__title-num" aria-hidden="true">
-                    ({pad(i)})
-                  </span>
-                  {d.name}
-                </h3>
-                <ul class="dx__covers" aria-label={`What ${d.name} covers`}>
-                  {d.covers.map((c) => (
-                    <li>{c}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          ))
-        }
-      </div>
+      <p class="dx__label">{whoWeAre.disciplinesLabel}</p>
 
-      <div class="dx__side">
-        <p class="dx__label">{whoWeAre.disciplinesLabel}</p>
-        <div class="dx__list" role="tablist" aria-label="Six disciplines" aria-orientation="vertical">
-          <span class="dx__pill" aria-hidden="true" data-dx-pill></span>
+      <div class="dx__grid">
+        <div class="dx__left">
+          <div class="dx__stage" aria-hidden="true">
+            {
+              whoWeAre.disciplines.map((d, i) => (
+                <div
+                  class:list={['dx__panel', `dx__panel--${i % 2 ? 'ink' : 'brand'}`, { 'is-active': i === 0 }]}
+                  data-dx-panel={i}
+                  style={`--i: ${i}`}
+                >
+                  {d.image ? (
+                    <img
+                      class="dx__img"
+                      src={d.image}
+                      alt=""
+                      width="900"
+                      height="900"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  ) : (
+                    <div class="dx__art">
+                      <span class="dx__rings" />
+                      <span class="dx__dot" />
+                      <span class="dx__art-num">{pad(i)}</span>
+                      <span class="dx__art-name">{d.name}</span>
+                    </div>
+                  )}
+                </div>
+              ))
+            }
+          </div>
+          <p class="dx__intro">{whoWeAre.intro}</p>
+        </div>
+
+        <ol class="dx__list">
           {
             whoWeAre.disciplines.map((d, i) => (
-              <button
-                class:list={['dx__row', { 'is-active': i === 0 }]}
-                type="button"
-                role="tab"
-                id={`dx-tab-${i}`}
-                aria-selected={i === 0 ? 'true' : 'false'}
-                aria-controls={`dx-panel-${i}`}
-                tabindex={i === 0 ? 0 : -1}
-                data-dx-tab={i}
-              >
-                <span class="dx__row-num">({pad(i)})</span>
-                <span class="dx__row-name">{d.name}</span>
-                <svg class="dx__arrow" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-                  <path d="M4 12h15M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
-              </button>
+              <li class:list={['dx__item', { 'is-open': i === 0 }]} data-dx-item={i}>
+                <h3 class="dx__heading">
+                  <button
+                    class="dx__trigger"
+                    type="button"
+                    id={`dx-btn-${i}`}
+                    aria-expanded={i === 0 ? 'true' : 'false'}
+                    aria-controls={`dx-body-${i}`}
+                    data-dx-btn={i}
+                  >
+                    <span class="dx__name">{d.name}</span>
+                    <span class="dx__rule" aria-hidden="true" />
+                  </button>
+                </h3>
+                <div class="dx__body" id={`dx-body-${i}`} role="region" aria-labelledby={`dx-btn-${i}`}>
+                  <div class="dx__body-inner">
+                    <ul class="dx__tags">
+                      {d.covers.map((c) => (
+                        <li>{c}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+                <span class="dx__num" aria-hidden="true">
+                  {pad(i)}
+                </span>
+              </li>
             ))
           }
-        </div>
-        <p class="dx__note">{whoWeAre.disciplinesNote}</p>
+        </ol>
       </div>
+
+      <p class="dx__note">{whoWeAre.disciplinesNote}</p>
     </div>
   </div>
 </section>
 
 <script>
   document.querySelectorAll<HTMLElement>('[data-dx]').forEach((root) => {
-    const tabs = [...root.querySelectorAll<HTMLButtonElement>('[data-dx-tab]')];
+    const items = [...root.querySelectorAll<HTMLElement>('[data-dx-item]')];
+    const buttons = [...root.querySelectorAll<HTMLButtonElement>('[data-dx-btn]')];
     const panels = [...root.querySelectorAll<HTMLElement>('[data-dx-panel]')];
-    const pill = root.querySelector<HTMLElement>('[data-dx-pill]');
-    const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
     let active = 0;
+    let leaveTimer = 0;
 
-    function placePill() {
-      const tab = tabs[active];
-      if (!pill || !tab) return;
-      pill.style.transform = `translate3d(0, ${tab.offsetTop}px, 0)`;
-      pill.style.height = `${tab.offsetHeight}px`;
-      pill.classList.add('is-ready');
-    }
-
-    function select(i: number, focus = false) {
-      if (i === active) {
-        if (focus) tabs[i].focus();
-        return;
-      }
+    function open(i: number) {
+      if (i === active) return;
       const prev = active;
       active = i;
-      tabs.forEach((tab, k) => {
-        const on = k === i;
-        tab.classList.toggle('is-active', on);
-        tab.setAttribute('aria-selected', String(on));
-        tab.tabIndex = on ? 0 : -1;
-      });
+      items.forEach((item, k) => item.classList.toggle('is-open', k === i));
+      buttons.forEach((btn, k) => btn.setAttribute('aria-expanded', String(k === i)));
       panels.forEach((panel, k) => {
         panel.classList.toggle('is-active', k === i);
         panel.classList.toggle('is-leaving', k === prev);
       });
-      // Clear the leaving state once the wipe has finished.
-      window.setTimeout(() => panels[prev]?.classList.remove('is-leaving'), 800);
-      placePill();
-      if (focus) tabs[i].focus();
+      window.clearTimeout(leaveTimer);
+      leaveTimer = window.setTimeout(() => panels[prev]?.classList.remove('is-leaving'), 800);
     }
 
-    const stage = root.querySelector<HTMLElement>('.dx__stage');
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
-
-    tabs.forEach((tab, i) => {
-      tab.addEventListener('click', () => {
-        select(i);
-        // On stacked (phone) layouts the visual sits above the list: bring it back into view.
-        if (stage && stage.getBoundingClientRect().top < 0) {
-          stage.scrollIntoView({ block: 'start', behavior: reduce.matches ? 'auto' : 'smooth' });
-        }
-      });
-      tab.addEventListener('pointerenter', (e) => {
-        if (e.pointerType === 'mouse' && finePointer.matches) select(i);
-      });
-      tab.addEventListener('keydown', (e) => {
-        const n = tabs.length;
+    buttons.forEach((btn, i) => {
+      btn.addEventListener('click', () => open(i));
+      btn.addEventListener('keydown', (e) => {
+        const n = buttons.length;
         let next = -1;
-        if (e.key === 'ArrowDown' || e.key === 'ArrowRight') next = (i + 1) % n;
-        else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') next = (i - 1 + n) % n;
+        if (e.key === 'ArrowDown') next = (i + 1) % n;
+        else if (e.key === 'ArrowUp') next = (i - 1 + n) % n;
         else if (e.key === 'Home') next = 0;
         else if (e.key === 'End') next = n - 1;
         if (next < 0) return;
         e.preventDefault();
-        select(next, true);
+        buttons[next].focus();
       });
     });
 
     root.classList.add('is-enhanced');
-    placePill();
-    window.addEventListener('resize', placePill);
-    document.fonts?.ready.then(placePill);
   });
 </script>
 
 <style>
-  /* ---------- Layout ---------- */
+  /* ---------- Frame ---------- */
   .dx {
     display: grid;
-    gap: var(--space-6);
-    padding: clamp(var(--space-4), 4vw, 72px);
+    gap: clamp(var(--space-5), 3vw, var(--space-7));
+    padding: clamp(var(--space-5), 4vw, 80px);
     border-radius: var(--radius-card);
     background: var(--color-surface);
   }
 
+  .dx__label {
+    font-size: clamp(1.0625rem, 0.95rem + 0.5vw, 1.375rem);
+    font-weight: var(--fw-medium);
+    color: var(--color-text);
+  }
+
+  .dx__grid {
+    display: grid;
+    gap: var(--space-6);
+  }
+
   @media (min-width: 900px) {
-    .dx {
-      grid-template-columns: minmax(280px, 400px) minmax(0, 1fr);
-      gap: clamp(var(--space-7), 5vw, 80px);
+    .dx__grid {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      gap: clamp(var(--space-6), 3.5vw, 52px);
       align-items: start;
+    }
+
+    .dx__left {
+      position: sticky;
+      top: var(--space-5);
     }
   }
 
-  /* ---------- Stage (visual + content); panels share one grid cell ---------- */
-  .dx__stage {
+  /* ---------- Left: changing visual + intro ---------- */
+  .dx__left {
     display: grid;
-    scroll-margin-top: var(--space-4);
+    gap: var(--space-5);
+  }
+
+  .dx__stage {
+    position: relative;
+    container-type: inline-size;
+    display: grid;
+    overflow: hidden;
+    aspect-ratio: 16 / 10;
+    border-radius: var(--radius-card);
+    background: var(--color-bg);
+  }
+
+  @media (min-width: 900px) {
+    .dx__stage {
+      aspect-ratio: 1 / 1; /* mockup: square image */
+    }
   }
 
   .dx__panel {
     grid-area: 1 / 1;
-    display: grid;
-    gap: var(--space-5);
-    align-content: start;
-  }
-
-  .dx__visual {
     position: relative;
     overflow: hidden;
-    aspect-ratio: 16 / 9;
-    border-radius: var(--radius-card);
-    background: var(--color-ink);
   }
 
-  @media (min-width: 900px) {
-    .dx__visual {
-      aspect-ratio: 34 / 40; /* reference image proportion */
-    }
+  .dx__panel--brand {
+    background: radial-gradient(120% 90% at 30% 110%, var(--color-red) 0%, var(--color-brand) 55%, color-mix(in srgb, var(--color-brand) 65%, var(--color-ink)) 100%);
+  }
+
+  .dx__panel--ink {
+    background: radial-gradient(120% 90% at 70% 110%, color-mix(in srgb, var(--color-ink) 82%, var(--color-bg)) 0%, var(--color-ink) 60%);
   }
 
   .dx__img {
@@ -229,15 +220,6 @@ const pad = (i: number) => String(i + 1).padStart(2, '0');
     width: 100%;
     height: 100%;
     object-fit: cover;
-  }
-
-  /* Branded panel: concentric rings (red-dot motif), big number and the discipline name */
-  .dx__panel--brand .dx__visual {
-    background: radial-gradient(120% 90% at 30% 110%, var(--color-red) 0%, var(--color-brand) 55%, color-mix(in srgb, var(--color-brand) 65%, var(--color-ink)) 100%);
-  }
-
-  .dx__panel--ink .dx__visual {
-    background: radial-gradient(120% 90% at 70% 110%, color-mix(in srgb, var(--color-ink) 82%, var(--color-bg)) 0%, var(--color-ink) 60%);
   }
 
   .dx__art {
@@ -249,31 +231,31 @@ const pad = (i: number) => String(i + 1).padStart(2, '0');
   .dx__rings {
     position: absolute;
     inset: 0;
-    --rx: calc(35% + var(--i) * 9%);
-    --ry: calc(30% + var(--i) * 4%);
+    --rx: calc(32% + var(--i) * 8%);
+    --ry: calc(30% + var(--i) * 5%);
     background: repeating-radial-gradient(
       circle at var(--rx) var(--ry),
-      transparent 0 34px,
-      rgb(255 255 255 / 0.14) 34px 35.5px
+      transparent 0 38px,
+      rgb(255 255 255 / 0.14) 38px 39.5px
     );
     transform-origin: var(--rx) var(--ry);
   }
 
   .dx__dot {
     position: absolute;
-    left: calc(35% + var(--i) * 9%);
-    top: calc(30% + var(--i) * 4%);
-    width: 14px;
-    height: 14px;
-    margin: -7px 0 0 -7px;
+    left: calc(32% + var(--i) * 8%);
+    top: calc(30% + var(--i) * 5%);
+    width: 16px;
+    height: 16px;
+    margin: -8px 0 0 -8px;
     border-radius: 50%;
     background: var(--color-on-brand);
-    box-shadow: 0 0 0 8px rgb(255 255 255 / 0.18);
+    box-shadow: 0 0 0 9px rgb(255 255 255 / 0.18);
   }
 
   .dx__panel--ink .dx__dot {
     background: var(--color-brand);
-    box-shadow: 0 0 0 8px rgb(var(--color-brand-rgb) / 0.35);
+    box-shadow: 0 0 0 9px rgb(var(--color-brand-rgb) / 0.35);
   }
 
   .dx__art-num {
@@ -291,87 +273,40 @@ const pad = (i: number) => String(i + 1).padStart(2, '0');
     left: var(--space-5);
     right: var(--space-5);
     bottom: var(--space-5);
-    font-size: clamp(2rem, 1.4rem + 2.4vw, 3.25rem);
+    font-size: clamp(1.5rem, 11.5cqw, 4rem); /* longest name ("Communication") fits the box */
     font-weight: var(--fw-semibold);
     line-height: 1;
     letter-spacing: -0.03em;
-    overflow-wrap: anywhere;
   }
 
-  /* Content under the visual */
-  .dx__content {
-    display: grid;
-    gap: var(--space-3);
-  }
-
-  .dx__title {
-    display: flex;
-    align-items: baseline;
-    gap: var(--space-2);
-    font-size: var(--fs-h3);
-    font-weight: var(--fw-semibold);
-    line-height: 1.2;
-  }
-
-  .dx__title-num {
-    font-size: var(--fs-small);
-    font-weight: var(--fw-bold);
-    color: var(--color-brand);
-  }
-
-  .dx__covers {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-  }
-
-  .dx__covers li {
-    padding: 5px 12px;
-    border: 1px solid rgb(var(--color-brand-rgb) / 0.3);
-    border-radius: var(--radius-pill);
-    background: var(--color-bg);
-    font-size: 0.8125rem;
+  .dx__intro {
+    max-width: 36rem;
+    padding-inline: clamp(0px, 2vw, var(--space-5));
+    font-size: var(--fs-lead);
     font-weight: var(--fw-medium);
+    line-height: 1.5;
     color: var(--color-text);
   }
 
-  /* ---------- Panel switching (JS adds .is-enhanced; without JS all panels stack) ---------- */
-  .dx:not(.is-enhanced) .dx__stage {
-    gap: var(--space-6);
-  }
-
-  .dx:not(.is-enhanced) .dx__panel {
-    grid-area: auto;
-  }
-
+  /* Visual switching: incoming panel wipes up from the bottom, its art settles in */
   .dx.is-enhanced .dx__panel {
     visibility: hidden;
-    pointer-events: none;
+    clip-path: inset(100% 0 0 0);
+    transition: clip-path 700ms var(--ease-out);
   }
 
   .dx.is-enhanced .dx__panel.is-active,
   .dx.is-enhanced .dx__panel.is-leaving {
     visibility: visible;
+    clip-path: inset(0 0 0 0);
   }
 
   .dx.is-enhanced .dx__panel.is-active {
     z-index: 2;
-    pointer-events: auto;
   }
 
   .dx.is-enhanced .dx__panel.is-leaving {
     z-index: 1;
-  }
-
-  /* Incoming visual wipes up from the bottom; its art settles in */
-  .dx.is-enhanced .dx__visual {
-    clip-path: inset(100% 0 0 0 round var(--radius-card));
-    transition: clip-path 700ms var(--ease-out);
-  }
-
-  .dx.is-enhanced .is-active .dx__visual,
-  .dx.is-enhanced .is-leaving .dx__visual {
-    clip-path: inset(0 0 0 0 round var(--radius-card));
   }
 
   .dx.is-enhanced .dx__img,
@@ -394,8 +329,7 @@ const pad = (i: number) => String(i + 1).padStart(2, '0');
       transform 600ms var(--ease-out);
   }
 
-  .dx.is-enhanced .is-active .dx__art-name,
-  .dx.is-enhanced .is-active .dx__art-num {
+  .dx.is-enhanced .is-active .dx__art-name {
     opacity: 1;
     transform: none;
     transition-delay: 220ms;
@@ -403,156 +337,221 @@ const pad = (i: number) => String(i + 1).padStart(2, '0');
 
   .dx.is-enhanced .is-active .dx__art-num {
     opacity: 0.85;
-  }
-
-  /* Content below fades and slides; leaving content fades out quickly */
-  .dx.is-enhanced .dx__content {
-    opacity: 0;
-    transform: translate3d(0, 12px, 0);
-    transition:
-      opacity 250ms var(--ease-out),
-      transform 250ms var(--ease-out);
-  }
-
-  .dx.is-enhanced .is-active .dx__content {
-    opacity: 1;
     transform: none;
-    transition:
-      opacity 450ms var(--ease-out) 250ms,
-      transform 450ms var(--ease-out) 250ms;
+    transition-delay: 220ms;
   }
 
-  /* ---------- Right side: rows ---------- */
-  .dx__side {
-    display: grid;
-    gap: var(--space-4);
-    align-content: start;
+  /* Without JS every panel would stack; show only the first */
+  .dx:not(.is-enhanced) .dx__panel:not(.is-active) {
+    display: none;
   }
 
-  .dx__label {
-    font-size: var(--fs-body);
-    font-weight: var(--fw-semibold);
-    color: var(--color-text);
-  }
-
+  /* ---------- Right: accordion ---------- */
   .dx__list {
-    position: relative;
     display: grid;
+    gap: var(--space-2);
   }
 
-  .dx__row {
+  .dx__item {
+    --num-size: clamp(4.5rem, 3rem + 4.5vw, 7.5rem);
+    --num-space: calc(var(--num-size) * 1.45);
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    background: transparent;
+    box-shadow: 0 0 0 transparent;
+    transition:
+      background-color 450ms var(--ease-out),
+      box-shadow 450ms var(--ease-out);
+  }
+
+  .dx__item.is-open {
+    background: var(--color-bg);
+    box-shadow: 0 10px 30px -12px rgb(0 0 0 / 0.14);
+  }
+
+  .dx__heading {
+    margin: 0;
+  }
+
+  .dx__trigger {
     position: relative;
     z-index: 1;
-    display: grid;
-    grid-template-columns: 4.5ch 1fr auto;
+    display: flex;
     align-items: center;
-    gap: var(--space-4);
+    gap: var(--space-6);
     width: 100%;
-    min-height: 64px;
-    padding: var(--space-3) var(--space-5);
+    min-height: calc(var(--num-size) * 0.95);
+    padding: var(--space-4) var(--num-space) var(--space-4) clamp(var(--space-4), 2vw, 30px);
     border: 0;
-    border-bottom: 1px solid var(--color-line);
-    border-radius: 0;
     background: none;
     color: var(--color-ink);
-    font-size: var(--fs-body);
-    font-weight: var(--fw-semibold);
     text-align: left;
     cursor: pointer;
-    transition: color 350ms var(--ease-out);
   }
 
-  .dx__row-num {
-    font-size: var(--fs-small);
-    font-variant-numeric: tabular-nums;
-    color: var(--color-text-muted);
-    transition: color 350ms var(--ease-out);
+  .dx__item.is-open .dx__trigger {
+    min-height: 0;
+    padding-top: clamp(var(--space-5), 2vw, 30px);
+    padding-bottom: var(--space-2);
   }
 
-  .dx__row-name {
-    font-size: clamp(1rem, 0.9rem + 0.5vw, 1.25rem);
+  .dx__name {
+    flex: none;
+    font-size: clamp(1.375rem, 1.1rem + 1vw, 2rem);
+    font-weight: var(--fw-semibold);
+    letter-spacing: -0.01em;
+    line-height: 1.1;
+    transition: color var(--dur-fast) var(--ease-out);
   }
 
-  .dx__arrow {
-    transition: transform 400ms var(--ease-out);
+  .dx__trigger:hover .dx__name {
+    color: var(--color-brand);
   }
 
-  .dx__row:hover .dx__arrow {
-    transform: translateX(4px);
+  .dx__item.is-open .dx__trigger:hover .dx__name {
+    color: var(--color-ink);
   }
 
-  .dx__row.is-active {
-    color: var(--color-on-brand);
-    border-bottom-color: transparent;
-  }
-
-  .dx__row.is-active .dx__row-num {
-    color: rgb(255 255 255 / 0.75);
-  }
-
-  .dx__row.is-active .dx__arrow {
-    transform: translateX(4px) rotate(-45deg);
-  }
-
-  .dx__row:focus-visible {
+  .dx__trigger:focus-visible {
     outline: none;
   }
 
-  .dx__row:focus-visible .dx__row-name {
-    outline: 2px solid currentColor;
+  .dx__trigger:focus-visible .dx__name {
+    outline: 2px solid var(--color-brand);
     outline-offset: 4px;
     border-radius: 4px;
   }
 
-  /* Without JS the active row carries its own pill */
-  .dx:not(.is-enhanced) .dx__row.is-active {
-    border-radius: 28px;
-    background: var(--color-ink);
-  }
-
-  /* Sliding black pill behind the active row (reference: active row as a floating dark pill) */
-  .dx__pill {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 0;
-    border-radius: 28px;
-    background: var(--color-ink);
-    box-shadow: 0 24px 40px -12px rgb(0 0 0 / 0.35);
-    opacity: 0;
-    pointer-events: none;
+  /* Thin red rule between name and number; retracts when the row opens */
+  .dx__rule {
+    flex: 1;
+    height: 1px;
+    background: var(--color-brand);
+    transform-origin: left center;
     transition:
-      transform 550ms cubic-bezier(0.34, 1.3, 0.64, 1),
-      height 400ms var(--ease-out),
-      opacity 300ms var(--ease-out);
+      transform 500ms var(--ease-out),
+      opacity 400ms var(--ease-out);
   }
 
-  .dx__pill.is-ready {
+  .dx__trigger:hover .dx__rule {
+    transform: scaleX(1.02);
+  }
+
+  .dx__item.is-open .dx__rule {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+
+  /* Big faded number: centred on closed rows, sinks to be cut off by the open card's edge */
+  .dx__num {
+    position: absolute;
+    right: clamp(var(--space-4), 2vw, 28px);
+    bottom: 0;
+    font-size: var(--num-size);
+    font-weight: var(--fw-medium);
+    line-height: 0.8;
+    letter-spacing: -0.04em;
+    font-variant-numeric: tabular-nums;
+    color: rgb(var(--color-brand-rgb) / 0.3);
+    pointer-events: none;
+    transform: translate3d(0, -12%, 0);
+    transition: transform 600ms var(--ease-out);
+  }
+
+  .dx__item.is-open .dx__num {
+    transform: translate3d(0, 32%, 0);
+  }
+
+  /* Tags: grid-rows trick opens the panel smoothly */
+  .dx__body {
+    position: relative;
+    z-index: 1; /* tags paint above the faded number */
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 550ms var(--ease-out);
+  }
+
+  .dx__item.is-open .dx__body {
+    grid-template-rows: 1fr;
+  }
+
+  .dx__body-inner {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .dx__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-5);
+    padding: var(--space-2) var(--num-space) clamp(var(--space-5), 2.4vw, 34px) clamp(var(--space-4), 2vw, 30px);
+    opacity: 0;
+    transform: translate3d(0, -8px, 0);
+    transition:
+      opacity 300ms var(--ease-out),
+      transform 300ms var(--ease-out);
+  }
+
+  .dx__item.is-open .dx__tags {
     opacity: 1;
+    transform: none;
+    transition:
+      opacity 450ms var(--ease-out) 150ms,
+      transform 450ms var(--ease-out) 150ms;
+  }
+
+  .dx__tags li {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--fs-small);
+    font-weight: var(--fw-medium);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-text);
+  }
+
+  .dx__tags li::before {
+    content: '';
+    flex: none;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--color-brand);
   }
 
   .dx__note {
-    max-width: 34rem;
+    max-width: 40rem;
     font-size: var(--fs-small);
     font-weight: var(--fw-medium);
     color: var(--color-text-muted);
   }
 
-  @media (min-width: 900px) {
-    .dx__row {
-      min-height: 96px;
-      grid-template-columns: 5ch 1fr auto;
-      padding-inline: var(--space-6);
+  /* Phones: smaller numbers, tighter rows */
+  @media (max-width: 599px) {
+    .dx__item {
+      --num-size: 3.75rem;
+      --num-space: 5.5rem;
     }
 
-    .dx__row-name {
-      text-align: center;
+    .dx__trigger {
+      gap: var(--space-4);
+    }
+
+    .dx__tags {
+      padding-right: var(--space-4);
+      gap: var(--space-2) var(--space-4);
+    }
+
+    .dx__item.is-open .dx__num {
+      transform: translate3d(0, 20%, 0);
+      opacity: 0.6;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .dx.is-enhanced .dx__visual {
+    .dx.is-enhanced .dx__panel {
       clip-path: none;
     }
 
