@@ -45,6 +45,20 @@ This section is a port of the Framer `ImpactRow` code component, rebuilt in plai
 - **≥1200px:** two rows of four. Hovering or tabbing to a card widens it to reveal a red panel built from the principle's own title (for example "Problems / before / services"), while its neighbours narrow. Leaving the row returns to the first card.
 - **<1200px:** an accordion with one card open per row. Tap or focus a card to open its panel.
 
+## Page opener
+
+The hero banner has been removed. The page now opens with **Vistaar in numbers** ("Six years of practice, in four numbers."), and that title is the page's h1. `NumbersStrip` takes a `lead` prop for this.
+
+## Who we work with
+
+- **For a … it may mean …:** the five kinds of organisation are tabs with Iconsax icons, next to a dark panel with a slow red glow. The panel shows what working with Vistaar may mean for the selected tab, with an "01 / 05" counter. While the block is on screen the tabs advance every 5 seconds, and a red progress line runs under the active tab. Hovering or focusing the block pauses it. Arrow keys, Home and End move between tabs. On phones the tabs become a swipeable row of small cards above the panel. Without JS, all five answers are listed.
+- **Sectors:** three cards (Consumer & Commerce, Industry & Services, Development & Public), each with a group icon and a grid of sector tiles with their own icons. Cards and tiles fade up in turn. Hovering a card lifts it, and hovering a tile turns its icon chip red.
+- With reduced motion there is no auto-advance and no entrance motion.
+
+## Icons
+
+Icons are [Iconsax](https://iconsax.io) (MIT licence). They are stored as plain SVG markup in `src/data/icons.js`, extracted from the `iconsax-react` package, so the page ships no icon library and React isn't needed. Use them with `<Icon name="bulk:Coffee" />` (`src/components/Icon.astro`). To add an icon, copy its markup from the Iconsax package's `dist/esm/<Name>.js` for the variant you want into `icons.js`.
+
 ## Six disciplines (Who we are)
 
 Left: the eyebrow, title, intro paragraph and a "Start a project" button. Right: a large hairline list ("1  Brand"). Hovering a row with the mouse, tabbing to it or tapping it on a phone opens it: a soft panel fades in behind the row, the name darkens and nudges right, the number turns red, and its capabilities unfold as red-dot tags. Moving the mouse off the list closes it. Each row is a disclosure button (`aria-expanded`), and the arrow keys and Escape work.

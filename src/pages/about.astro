@@ -1,6 +1,5 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import AboutHero from '../components/about/AboutHero.astro';
 import WhoWeAre from '../components/about/WhoWeAre.astro';
 import FounderOrigin from '../components/about/FounderOrigin.astro';
 import Timeline from '../components/about/Timeline.astro';
@@ -52,7 +51,7 @@ const jsonLd = {
   ogImageAlt={seo.ogImageAlt}
   jsonLd={jsonLd}
 >
-  <AboutHero />
+  <NumbersStrip lead />
   <WhoWeAre />
   <FounderOrigin />
   <Timeline />
@@ -60,7 +59,6 @@ const jsonLd = {
   <CaseStudies />
   <PrinciplesGrid />
   <VisionMission />
-  <NumbersStrip />
   <WhoWeWorkWith />
   <TeamShowcase />
   <AboutCTA />

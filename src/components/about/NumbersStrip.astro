@@ -1,12 +1,21 @@
 ---
+/**
+ * Vistaar in numbers. With `lead`, it opens the page: the title becomes the page's h1.
+ */
 import { numbers } from '../../data/about.js';
+
+interface Props {
+  lead?: boolean;
+}
+const { lead = false } = Astro.props;
+const Heading = lead ? 'h1' : 'h2';
 ---
 
-<section class="section numbers" aria-labelledby="numbers-title">
+<section class:list={['section numbers', { 'numbers--lead': lead }]} aria-labelledby="numbers-title">
   <div class="container">
     <header class="section-head">
       <p class="eyebrow">{numbers.eyebrow}</p>
-      <h2 class="section-title" id="numbers-title" data-reveal>{numbers.title}</h2>
+      <Heading class="section-title" id="numbers-title" data-reveal>{numbers.title}</Heading>
     </header>
 
     <dl class="numbers__grid">
@@ -28,6 +37,10 @@ import { numbers } from '../../data/about.js';
 </section>
 
 <style>
+  .numbers--lead {
+    padding-top: clamp(var(--space-7), 8vw, 140px);
+  }
+
   /* Stat type matches the home stats row (Figma 7:691). */
   .numbers__grid {
     display: grid;

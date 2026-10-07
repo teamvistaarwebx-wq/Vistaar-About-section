@@ -1,0 +1,24 @@
+---
+/** Inline Iconsax icon (see src/data/icons.js). Decorative: hidden from assistive tech. */
+import { icons } from '../data/icons.js';
+
+interface Props {
+  name: string;
+  size?: number;
+  class?: string;
+}
+const { name, size = 24, class: className } = Astro.props;
+const markup = icons[name as keyof typeof icons];
+if (!markup) throw new Error(`Unknown icon: ${name}`);
+---
+
+<svg
+  class={className}
+  viewBox="0 0 24 24"
+  width={size}
+  height={size}
+  fill="none"
+  aria-hidden="true"
+  focusable="false"
+  set:html={markup}
+/>

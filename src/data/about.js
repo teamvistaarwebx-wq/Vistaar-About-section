@@ -14,14 +14,6 @@ export const seo = {
   ogImageAlt: 'Vistaar WebX: From digital practice to multidisciplinary consultancy.',
 };
 
-export const hero = {
-  eyebrow: 'Strategy · System · Scale',
-  // Rendered as: lead + <accent> (accent shown in brand red)
-  headline: { lead: 'From digital practice to', accent: 'multidisciplinary consultancy.' },
-  sub: 'Brand, digital, research and technology consultancy from Bhopal, working across India.',
-  facts: ['Est. 2019', 'Bhopal', 'Working across India'],
-};
-
 export const whoWeAre = {
   eyebrow: 'Who we are',
   title: 'More than isolated marketing or technology services.',
@@ -375,25 +367,51 @@ export const workWith = {
   colFor: 'For a',
   colMeans: 'It may mean',
   rows: [
-    { for: 'D2C company', means: 'Building the brand, website and acquisition engine' },
-    { for: 'Established business', means: 'Fixing fragmented digital systems' },
-    { for: 'Institution', means: 'Research and strategic communication' },
-    { for: 'Government programme', means: 'Impact assessment, documentation and public communication' },
-    { for: 'Organisation adopting AI', means: 'Designing internal tools and workflows' },
+    { for: 'D2C company', means: 'Building the brand, website and acquisition engine', icon: 'linear:Shop' },
+    { for: 'Established business', means: 'Fixing fragmented digital systems', icon: 'linear:Building' },
+    { for: 'Institution', means: 'Research and strategic communication', icon: 'linear:Teacher' },
+    { for: 'Government programme', means: 'Impact assessment, documentation and public communication', icon: 'linear:Courthouse' },
+    { for: 'Organisation adopting AI', means: 'Designing internal tools and workflows', icon: 'linear:Magicpen' },
   ],
   sectorsTitle: 'Sectors we work across',
+  /** Icons are Iconsax keys from src/data/icons.js. */
   sectors: [
     {
       name: 'Consumer & Commerce',
-      items: ['D2C', 'FMCG', 'Fashion', 'Handloom and craft', 'Food and beverage', 'Beauty', 'Retail'],
+      icon: 'bulk:ShoppingBag',
+      items: [
+        { name: 'D2C', icon: 'bulk:Shop' },
+        { name: 'FMCG', icon: 'bulk:Box' },
+        { name: 'Fashion', icon: 'bulk:Bag2' },
+        { name: 'Handloom and craft', icon: 'bulk:Brush' },
+        { name: 'Food and beverage', icon: 'bulk:Coffee' },
+        { name: 'Beauty', icon: 'bulk:MagicStar' },
+        { name: 'Retail', icon: 'bulk:ShoppingCart' },
+      ],
     },
     {
       name: 'Industry & Services',
-      items: ['Healthcare', 'Industrial', 'Construction', 'Technology', 'Professional services', 'Hospitality'],
+      icon: 'bulk:Buildings',
+      items: [
+        { name: 'Healthcare', icon: 'bulk:Hospital' },
+        { name: 'Industrial', icon: 'bulk:Setting2' },
+        { name: 'Construction', icon: 'bulk:Building3' },
+        { name: 'Technology', icon: 'bulk:Cpu' },
+        { name: 'Professional services', icon: 'bulk:Briefcase' },
+        { name: 'Hospitality', icon: 'bulk:Reserve' },
+      ],
     },
     {
       name: 'Development & Public',
-      items: ['NGOs', 'CSR', 'Public-sector communication', 'Infrastructure', 'Agriculture', 'Water and irrigation'],
+      icon: 'bulk:Global',
+      items: [
+        { name: 'NGOs', icon: 'bulk:People' },
+        { name: 'CSR', icon: 'bulk:Heart' },
+        { name: 'Public-sector communication', icon: 'bulk:Messages2' },
+        { name: 'Infrastructure', icon: 'bulk:Buildings2' },
+        { name: 'Agriculture', icon: 'bulk:Tree' },
+        { name: 'Water and irrigation', icon: 'bulk:Drop' },
+      ],
     },
   ],
 };

@@ -1,174 +1,698 @@
 ---
+/**
+ * Who we work with.
+ *
+ * 1. "For a … it may mean …": the five kinds of organisation are tabs (Iconsax icons) beside a dark
+ *    panel that shows what working with Vistaar may mean for the selected one. While the section is
+ *    on screen the tabs advance on their own every few seconds, with a progress line on the active
+ *    tab; hovering or focusing the block pauses it. Arrow keys, Home and End move between tabs.
+ *    Without JS every answer is shown as a plain list.
+ * 2. Sectors: three cards (one per group), each with a group icon and a grid of sector tiles with
+ *    their own icons. Cards and tiles fade up in turn; a tile's icon turns red on hover.
+ * Reduced motion: no auto-advance and no entrance motion.
+ */
+import Icon from '../Icon.astro';
 import { workWith } from '../../data/about.js';
+
+const total = workWith.rows.length;
+const pad = (n: number) => String(n).padStart(2, '0');
 ---
 
-<section class="section section--surface ww" aria-labelledby="ww-title">
+<section class="section section--surface ww" aria-labelledby="ww-title" data-ww>
   <div class="container">
     <header class="section-head">
       <p class="eyebrow">{workWith.eyebrow}</p>
       <h2 class="section-title" id="ww-title" data-reveal>{workWith.title}</h2>
     </header>
 
-    <div class="ww__grid">
-      <table class="ww__table" data-reveal>
-        <caption class="visually-hidden">{workWith.tableCaption}</caption>
-        <thead>
-          <tr>
-            <th scope="col">{workWith.colFor}</th>
-            <th scope="col">{workWith.colMeans}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {
-            workWith.rows.map((row) => (
-              <tr>
-                <th scope="row">{row.for}</th>
-                <td>{row.means}</td>
-              </tr>
-            ))
-          }
-        </tbody>
-      </table>
-
-      <div class="ww__sectors">
-        <h3 class="ww__sectors-title">{workWith.sectorsTitle}</h3>
+    <!-- 1. For a … it may mean … -->
+    <div class="ww__fit" data-ww-fit>
+      <div class="ww__tabs" role="tablist" aria-label={workWith.tableCaption} data-ww-tabs>
         {
-          workWith.sectors.map((sector, i) => (
-            <div class="ww__sector" data-reveal style={`--reveal-i: ${i}`}>
-              <h4 class="ww__sector-name">{sector.name}</h4>
-              <ul class="ww__chips">
-                {sector.items.map((item) => (
-                  <li class="chip">{item}</li>
-                ))}
-              </ul>
-            </div>
+          workWith.rows.map((row, i) => (
+            <button
+              class="ww__tab"
+              type="button"
+              role="tab"
+              id={`ww-tab-${i}`}
+              aria-controls={`ww-panel-${i}`}
+              aria-selected={i === 0 ? 'true' : 'false'}
+              tabindex={i === 0 ? 0 : -1}
+              data-ww-tab={i}
+            >
+              <span class="ww__tab-icon">
+                <Icon name={row.icon} size={22} />
+              </span>
+              <span class="ww__tab-text">
+                <span class="ww__tab-kicker">{workWith.colFor}</span>
+                <span class="ww__tab-name">{row.for}</span>
+              </span>
+              <span class="ww__tab-arrow">
+                <Icon name="linear:ArrowRight" size={18} />
+              </span>
+              <span class="ww__tab-progress" aria-hidden="true" />
+            </button>
           ))
         }
       </div>
+
+      <div class="ww__stage">
+        {
+          workWith.rows.map((row, i) => (
+            <div
+              class="ww__panel"
+              role="tabpanel"
+              id={`ww-panel-${i}`}
+              aria-labelledby={`ww-tab-${i}`}
+              data-ww-panel={i}
+            >
+              <div class="ww__panel-top">
+                <span class="ww__panel-icon">
+                  <Icon name={row.icon} size={28} />
+                </span>
+                <span class="ww__panel-count" aria-hidden="true">
+                  {pad(i + 1)} <span>/ {pad(total)}</span>
+                </span>
+              </div>
+              <p class="ww__panel-for">
+                {workWith.colFor} <strong>{row.for}</strong>
+              </p>
+              <p class="ww__panel-kicker">{workWith.colMeans}</p>
+              <p class="ww__panel-means">{row.means}</p>
+            </div>
+          ))
+        }
+        <span class="ww__glow" aria-hidden="true" />
+      </div>
+    </div>
+
+    <!-- 2. Sectors -->
+    <div class="ww__sectors">
+      <h3 class="ww__sectors-title" data-reveal>{workWith.sectorsTitle}</h3>
+      <ul class="ww__groups" data-ww-groups>
+        {
+          workWith.sectors.map((sector, g) => (
+            <li class="ww__group" style={`--g: ${g}`}>
+              <div class="ww__group-head">
+                <span class="ww__group-icon">
+                  <Icon name={sector.icon} size={26} />
+                </span>
+                <h4 class="ww__group-name">{sector.name}</h4>
+              </div>
+              <ul class="ww__tiles">
+                {sector.items.map((item, k) => (
+                  <li class="ww__tile" style={`--k: ${k}`}>
+                    <span class="ww__tile-icon">
+                      <Icon name={item.icon} size={20} />
+                    </span>
+                    <span class="ww__tile-name">{item.name}</span>
+                  </li>
+                ))}
+              </ul>
+            </li>
+          ))
+        }
+      </ul>
     </div>
   </div>
 </section>
 
+<script>
+  document.querySelectorAll<HTMLElement>('[data-ww]').forEach((section) => {
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const fit = section.querySelector<HTMLElement>('[data-ww-fit]')!;
+    const tabs = [...section.querySelectorAll<HTMLButtonElement>('[data-ww-tab]')];
+    const panels = [...section.querySelectorAll<HTMLElement>('[data-ww-panel]')];
+    const DWELL = 5000;
+    let active = 0;
+    let timer = 0;
+    let onScreen = false;
+    let paused = false;
+
+    section.classList.add('is-enhanced');
+    if (reduce) section.classList.add('is-static');
+
+    function select(i: number, focus = false) {
+      active = (i + tabs.length) % tabs.length;
+      tabs.forEach((t, k) => {
+        const on = k === active;
+        t.setAttribute('aria-selected', String(on));
+        t.tabIndex = on ? 0 : -1;
+        t.classList.remove('is-timing');
+      });
+      panels.forEach((p, k) => (p.hidden = k !== active));
+      if (focus) tabs[active].focus();
+      schedule();
+    }
+
+    // Auto-advance while visible, unless paused by hover/focus or reduced motion.
+    function schedule() {
+      window.clearTimeout(timer);
+      const tab = tabs[active];
+      tab.classList.remove('is-timing');
+      if (reduce || paused || !onScreen) return;
+      void tab.offsetWidth; // restart the progress line
+      tab.classList.add('is-timing');
+      timer = window.setTimeout(() => select(active + 1), DWELL);
+    }
+
+    tabs.forEach((tab, i) => {
+      tab.addEventListener('click', () => select(i));
+      tab.addEventListener('keydown', (e) => {
+        const keys: Record<string, number> = {
+          ArrowDown: active + 1,
+          ArrowRight: active + 1,
+          ArrowUp: active - 1,
+          ArrowLeft: active - 1,
+          Home: 0,
+          End: tabs.length - 1,
+        };
+        if (!(e.key in keys)) return;
+        e.preventDefault();
+        select(keys[e.key], true);
+      });
+    });
+
+    const pause = (on: boolean) => {
+      paused = on;
+      schedule();
+    };
+    fit.addEventListener('pointerenter', () => pause(true));
+    fit.addEventListener('pointerleave', () => pause(fit.contains(document.activeElement)));
+    fit.addEventListener('focusin', () => pause(true));
+    fit.addEventListener('focusout', (e) => {
+      if (!fit.contains(e.relatedTarget as Node)) pause(fit.matches(':hover'));
+    });
+
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(
+        (entries) =>
+          entries.forEach((e) => {
+            onScreen = e.isIntersecting;
+            schedule();
+          }),
+        { threshold: 0.4 },
+      ).observe(fit);
+
+      const groups = section.querySelector('[data-ww-groups]')!;
+      const io = new IntersectionObserver(
+        (entries) => {
+          if (!entries.some((e) => e.isIntersecting)) return;
+          groups.classList.add('is-in');
+          io.disconnect();
+        },
+        { rootMargin: '0px 0px -10% 0px', threshold: 0.1 },
+      );
+      io.observe(groups);
+    } else {
+      section.querySelector('[data-ww-groups]')!.classList.add('is-in');
+    }
+
+    select(0);
+  });
+</script>
+
 <style>
-  .ww__grid {
+  /* ================= 1. For a … it may mean … ================= */
+  .ww__fit {
     display: grid;
-    gap: var(--space-7);
+    gap: var(--space-5);
   }
 
-  .ww__table {
+  .ww__tabs {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .ww__tab {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: var(--space-4);
     width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
+    padding: var(--space-3) var(--space-4) var(--space-3) var(--space-3);
     overflow: hidden;
-    border-radius: var(--radius-card);
-    background: var(--color-bg);
+    border: 1px solid transparent;
+    border-radius: 16px;
+    background: transparent;
+    color: var(--color-ink);
+    font: inherit;
     text-align: left;
+    cursor: pointer;
+    transition:
+      background-color var(--dur-fast) var(--ease-out),
+      border-color var(--dur-fast) var(--ease-out),
+      box-shadow var(--dur-fast) var(--ease-out);
   }
 
-  .ww__table thead th {
-    padding: var(--space-4) var(--space-5);
-    font-size: 0.75rem;
+  .ww__tab:hover {
+    background: rgb(255 255 255 / 0.6);
+  }
+
+  .ww__tab:focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+  }
+
+  .ww__tab-icon {
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: var(--color-bg);
+    color: var(--color-ink);
+    transition:
+      background-color var(--dur-base) var(--ease-out),
+      color var(--dur-base) var(--ease-out);
+  }
+
+  .ww__tab-text {
+    display: grid;
+    gap: 2px;
+  }
+
+  .ww__tab-kicker {
+    font-size: 0.6875rem;
     font-weight: var(--fw-bold);
     letter-spacing: var(--tracking-eyebrow);
     text-transform: uppercase;
     color: var(--color-text-muted);
   }
 
-  .ww__table tbody th,
-  .ww__table tbody td {
-    padding: var(--space-4) var(--space-5);
-    border-top: 1px solid var(--color-line);
-    vertical-align: top;
-  }
-
-  .ww__table tbody th {
+  .ww__tab-name {
+    font-size: clamp(1rem, 0.9rem + 0.35vw, 1.1875rem);
     font-weight: var(--fw-semibold);
-    color: var(--color-ink);
+    line-height: 1.25;
   }
 
-  .ww__table tbody td {
-    font-weight: var(--fw-medium);
-    color: var(--color-text);
-  }
-
-  .ww__table tbody tr {
-    transition: background-color var(--dur-fast) var(--ease-out);
-  }
-
-  .ww__table tbody tr:hover {
-    background: rgb(var(--color-brand-rgb) / 0.04);
-  }
-
-  /* Small screens: stack each row as a mini card */
-  @media (max-width: 599px) {
-    .ww__table thead {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      overflow: hidden;
-      clip: rect(0 0 0 0);
-    }
-
-    .ww__table tbody tr {
-      display: grid;
-      gap: var(--space-1);
-      padding: var(--space-4) var(--space-5);
-      border-top: 1px solid var(--color-line);
-    }
-
-    .ww__table tbody tr:first-child {
-      border-top: 0;
-    }
-
-    .ww__table tbody th,
-    .ww__table tbody td {
-      padding: 0;
-      border: 0;
-    }
-  }
-
-  .ww__sectors {
+  .ww__tab-arrow {
     display: grid;
-    gap: var(--space-5);
-    align-content: start;
+    color: var(--color-brand);
+    opacity: 0;
+    transform: translateX(-6px);
+    transition:
+      opacity var(--dur-fast) var(--ease-out),
+      transform var(--dur-fast) var(--ease-out);
   }
 
-  .ww__sectors-title {
-    font-size: var(--fs-h3);
-    font-weight: var(--fw-semibold);
-  }
-
-  .ww__sector {
-    display: grid;
-    gap: var(--space-3);
-  }
-
-  .ww__sector-name {
-    display: inline-flex;
-    align-items: center;
-    gap: 9px;
-    font-size: var(--fs-body);
-    font-weight: var(--fw-semibold);
-  }
-
-  .ww__sector-name::before {
-    content: '';
-    width: var(--dot);
-    height: var(--dot);
-    border-radius: 50%;
+  .ww__tab-progress {
+    position: absolute;
+    left: var(--space-4);
+    right: var(--space-4);
+    bottom: 0;
+    height: 2px;
+    border-radius: 2px;
     background: var(--color-brand);
+    transform: scaleX(0);
+    transform-origin: left;
   }
 
-  .ww__chips {
+  /* selected */
+  .ww__tab[aria-selected='true'] {
+    border-color: var(--color-line);
+    background: var(--color-bg);
+    box-shadow: 0 12px 30px -18px rgb(0 0 0 / 0.25);
+  }
+
+  .ww__tab[aria-selected='true'] .ww__tab-icon {
+    background: var(--color-brand);
+    color: var(--color-on-brand);
+  }
+
+  .ww__tab[aria-selected='true'] .ww__tab-arrow {
+    opacity: 1;
+    transform: none;
+  }
+
+  .ww__tab.is-timing .ww__tab-progress {
+    animation: ww-progress 5000ms linear forwards;
+  }
+
+  @keyframes ww-progress {
+    to {
+      transform: scaleX(1);
+    }
+  }
+
+  /* Panel: dark card with a soft red glow */
+  .ww__stage {
+    position: relative;
+    display: grid;
+    min-height: 100%;
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    background: var(--color-ink);
+    color: var(--color-on-brand);
+    isolation: isolate;
+  }
+
+  .ww__glow {
+    position: absolute;
+    z-index: -1;
+    right: -20%;
+    bottom: -45%;
+    width: 80%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgb(var(--color-brand-rgb) / 0.75), transparent);
+    filter: blur(10px);
+    animation: ww-glow 9s ease-in-out infinite alternate;
+  }
+
+  @keyframes ww-glow {
+    to {
+      transform: translate3d(-12%, -8%, 0) scale(1.1);
+    }
+  }
+
+  .ww__panel {
     display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: clamp(var(--space-5), 3.5vw, 52px);
+  }
+
+  .ww__panel + .ww__panel {
+    border-top: 1px solid rgb(255 255 255 / 0.12); /* no-JS: all answers stacked */
+  }
+
+  .ww__panel-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: auto;
+    padding-bottom: var(--space-6);
+  }
+
+  .ww__panel-icon {
+    display: grid;
+    place-items: center;
+    width: 60px;
+    height: 60px;
+    border-radius: 18px;
+    background: rgb(255 255 255 / 0.08);
+    color: var(--color-on-brand);
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.14);
+  }
+
+  .ww__panel-count {
+    font-size: var(--fs-body);
+    font-weight: var(--fw-bold);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ww__panel-count span {
+    color: rgb(255 255 255 / 0.5);
+  }
+
+  .ww__panel-for {
+    font-size: var(--fs-body);
+    color: rgb(255 255 255 / 0.72);
+  }
+
+  .ww__panel-for strong {
+    font-weight: var(--fw-semibold);
+    color: var(--color-on-brand);
+  }
+
+  .ww__panel-kicker {
+    margin-top: var(--space-3);
+    font-size: 0.75rem;
+    font-weight: var(--fw-bold);
+    letter-spacing: var(--tracking-eyebrow);
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--color-brand) 45%, white);
+  }
+
+  .ww__panel-means {
+    max-width: 22ch;
+    font-size: clamp(1.75rem, 1.2rem + 2.2vw, 3.25rem);
+    font-weight: var(--fw-semibold);
+    line-height: 1.08;
+    letter-spacing: -0.025em;
+    text-wrap: balance;
+  }
+
+  /* Enhanced: one panel at a time, entering with a light lift */
+  .ww.is-enhanced .ww__panel {
+    grid-area: 1 / 1;
+  }
+
+  .ww.is-enhanced .ww__panel + .ww__panel {
+    border-top: 0;
+  }
+
+  .ww.is-enhanced .ww__panel[hidden] {
+    display: none;
+  }
+
+  .ww.is-enhanced:not(.is-static) .ww__panel:not([hidden]) > * {
+    animation: ww-in 600ms var(--ease-out) both;
+  }
+
+  .ww.is-enhanced:not(.is-static) .ww__panel:not([hidden]) > .ww__panel-means {
+    animation-delay: 90ms;
+  }
+
+  @keyframes ww-in {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 14px, 0);
+    }
+  }
+
+  /* Phones: tabs become a swipeable row of compact cards */
+  @media (max-width: 767px) {
+    .ww__tabs {
+      grid-auto-flow: column;
+      grid-auto-columns: minmax(150px, 46%);
+      margin-inline: calc(var(--gutter, 16px) * -1);
+      padding: 2px var(--gutter, 16px) 6px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scroll-padding-inline: var(--gutter, 16px);
+      scrollbar-width: none;
+    }
+
+    .ww__tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .ww__tab {
+      grid-template-columns: 1fr;
+      align-content: start;
+      gap: var(--space-3);
+      padding: var(--space-3);
+      scroll-snap-align: start;
+      border-color: var(--color-line);
+      background: rgb(255 255 255 / 0.5);
+    }
+
+    .ww__tab-arrow,
+    .ww__tab-kicker {
+      display: none;
+    }
+
+    .ww__tab-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+    }
+
+    .ww__tab-name {
+      font-size: var(--fs-small);
+    }
+
+    .ww__panel {
+      min-height: 320px;
+    }
   }
 
   @media (min-width: 1024px) {
-    .ww__grid {
-      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-      gap: clamp(var(--space-7), 5vw, 100px);
+    .ww__fit {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      gap: clamp(var(--space-5), 3vw, 48px);
+      align-items: stretch;
+    }
+
+    .ww__panel {
+      min-height: 420px;
+    }
+  }
+
+  /* ================= 2. Sectors ================= */
+  .ww__sectors {
+    margin-top: clamp(var(--space-8, 72px), 8vw, 120px);
+  }
+
+  .ww__sectors-title {
+    margin-bottom: var(--space-6);
+    font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2.25rem);
+    font-weight: var(--fw-bold);
+    letter-spacing: -0.02em;
+  }
+
+  .ww__groups {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  @media (min-width: 1024px) {
+    .ww__groups {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-5);
+    }
+  }
+
+  .ww__group {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    padding: clamp(var(--space-5), 2.4vw, 32px);
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    background: var(--color-bg);
+    isolation: isolate;
+    transition:
+      transform var(--dur-base) var(--ease-out),
+      box-shadow var(--dur-base) var(--ease-out);
+  }
+
+  /* soft red corner glow on hover */
+  .ww__group::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    top: -40%;
+    right: -30%;
+    width: 70%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgb(var(--color-brand-rgb) / 0.12), transparent);
+    opacity: 0;
+    transition: opacity var(--dur-base) var(--ease-out);
+  }
+
+  .ww__group:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 24px 50px -30px rgb(0 0 0 / 0.3);
+  }
+
+  .ww__group:hover::before {
+    opacity: 1;
+  }
+
+  .ww__group-head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .ww__group-icon {
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    background: rgb(var(--color-brand-rgb) / 0.09);
+    color: var(--color-brand);
+  }
+
+  .ww__group-name {
+    font-size: var(--fs-lead);
+    font-weight: var(--fw-bold);
+    line-height: 1.2;
+  }
+
+  .ww__tiles {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-2);
+  }
+
+  .ww__tile {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-3) var(--space-4);
+    border: 1px solid var(--color-line);
+    border-radius: 14px;
+    transition:
+      border-color var(--dur-fast) var(--ease-out),
+      background-color var(--dur-fast) var(--ease-out);
+  }
+
+  .ww__tile-icon {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+    background: var(--color-surface);
+    color: var(--color-ink);
+    transition:
+      background-color var(--dur-fast) var(--ease-out),
+      color var(--dur-fast) var(--ease-out),
+      transform var(--dur-base) cubic-bezier(0.34, 1.6, 0.64, 1);
+  }
+
+  .ww__tile-name {
+    font-size: var(--fs-small);
+    font-weight: var(--fw-semibold);
+    line-height: 1.3;
+    color: var(--color-ink);
+  }
+
+  .ww__tile:hover {
+    border-color: rgb(var(--color-brand-rgb) / 0.4);
+    background: rgb(var(--color-brand-rgb) / 0.04);
+  }
+
+  .ww__tile:hover .ww__tile-icon {
+    background: var(--color-brand);
+    color: var(--color-on-brand);
+    transform: rotate(-8deg) scale(1.06);
+  }
+
+  @media (min-width: 600px) and (max-width: 1023px) {
+    .ww__tiles {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  /* Entrance: cards then tiles fade up in turn */
+  .ww.is-enhanced:not(.is-static) .ww__groups:not(.is-in) .ww__group,
+  .ww.is-enhanced:not(.is-static) .ww__groups:not(.is-in) .ww__tile {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+  }
+
+  .ww__groups.is-in .ww__group {
+    transition:
+      opacity 700ms var(--ease-out) calc(var(--g) * 120ms),
+      transform 700ms var(--ease-out) calc(var(--g) * 120ms),
+      box-shadow var(--dur-base) var(--ease-out);
+  }
+
+  .ww__groups.is-in .ww__tile {
+    transition:
+      opacity 500ms var(--ease-out) calc(250ms + var(--g) * 120ms + var(--k) * 55ms),
+      transform 500ms var(--ease-out) calc(250ms + var(--g) * 120ms + var(--k) * 55ms),
+      border-color var(--dur-fast) var(--ease-out),
+      background-color var(--dur-fast) var(--ease-out);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ww__glow {
+      animation: none;
+    }
+
+    .ww__group:hover,
+    .ww__tile:hover .ww__tile-icon {
+      transform: none;
     }
   }
 </style>
