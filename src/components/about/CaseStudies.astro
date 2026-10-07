@@ -1,0 +1,790 @@
+---
+/**
+ * Case studies snapshot (after How we work).
+ *
+ * A swipeable row of cards (two visible on desktop, one on phones) with prev/next buttons and an
+ * "n / 3" counter. Each card: logo + sector, the challenge, what we did, tags, a small chart of the
+ * reported result, and a black result bar.
+ *
+ * Charts show only the numbers the case study reports (no invented in-between data):
+ * - growth: before → after columns (emphasis: grey before, brand red after) with a ×N connector
+ * - roas:   return on ad spend on a 0 → max scale with a 1× break-even marker; a [min, max]
+ *           range shows a solid bar to the minimum and a lighter band to the maximum
+ * Marks grow from the baseline when the card scrolls into view; the result figures count up.
+ * Every mark is direct-labelled and each chart has a visually hidden data table.
+ */
+import { caseStudies } from '../../data/about.js';
+
+const fmt = (unit = '', v: number, suffix = '') => `${unit}${v}${suffix}`;
+/** Wrap each number in a count-up span; the card counts them up when it comes into view. */
+const countUp = (text: string) =>
+  text.replace(/\d+/g, (n) => `<span class="cs__count" data-cs-count="${n}">${n}</span>`);
+const ticksFor = (max: number) => {
+  const step = max <= 5 ? 1 : 5;
+  return Array.from({ length: Math.floor(max / step) + 1 }, (_, i) => i * step);
+};
+const total = caseStudies.items.length;
+---
+
+<section class="section cs" aria-labelledby="cs-title" data-cs>
+  <div class="container">
+    <header class="cs__head">
+      <div class="cs__head-text">
+        <p class="eyebrow">
+          {caseStudies.eyebrow}<span class="cs__counter" aria-hidden="true">
+            · <span data-cs-current>1</span> / {total}</span
+          >
+        </p>
+        <h2 class="section-title" id="cs-title">
+          {caseStudies.title.replace(/\.$/, '')}<span class="accent">.</span>
+        </h2>
+        <p class="cs__intro">{caseStudies.intro}</p>
+      </div>
+      <div class="cs__nav">
+        <button class="cs__btn" type="button" data-cs-prev aria-label="Previous case study" disabled>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg>
+        </button>
+        <button class="cs__btn" type="button" data-cs-next aria-label="Next case study">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
+        </button>
+      </div>
+    </header>
+  </div>
+
+  <div class="container cs__viewport">
+    <ul class="cs__track" data-cs-track tabindex="0" aria-label="Case studies, scroll sideways for more">
+      {
+        caseStudies.items.map((c, i) => {
+          const ch = c.chart;
+          return (
+            <li class="cs__card" data-cs-card={i}>
+              <article class="cs__inner" aria-labelledby={`cs-client-${i}`}>
+                <div class="cs__top">
+                  <h3 class="cs__client" id={`cs-client-${i}`}>
+                    {c.logo ? (
+                      <img
+                        class="cs__logo"
+                        src={c.logo.src}
+                        alt={c.client}
+                        width={c.logo.width}
+                        height={c.logo.height}
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    ) : (
+                      <span class="cs__wordmark">{c.client}</span>
+                    )}
+                  </h3>
+                  <span class="cs__sector">{c.sector}</span>
+                </div>
+
+                <div class="cs__block">
+                  <h4 class="cs__label">The challenge</h4>
+                  <p>{c.challenge}</p>
+                </div>
+                <div class="cs__block">
+                  <h4 class="cs__label">What we did</h4>
+                  <p>{c.work}</p>
+                </div>
+                <ul class="cs__tags" aria-label="Services">
+                  {c.tags.map((t) => (
+                    <li>{t}</li>
+                  ))}
+                </ul>
+
+                {ch.type === 'growth' && (
+                  <figure class="cs__chart cs__chart--growth">
+                    <div class="cs__plot" style={`--before: ${ch.before / ch.after}`}>
+                      <span class="cs__grid" aria-hidden="true" />
+                      <svg class="cs__connector" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                        <path d={`M30 ${100 - (ch.before / ch.after) * 100} L70 0`} pathLength="100" />
+                      </svg>
+                      <span class="cs__multiple" aria-hidden="true">
+                        ×{Math.round((ch.after / ch.before) * 10) / 10}
+                      </span>
+                      {[
+                        { k: 'before', v: ch.before, label: ch.beforeLabel },
+                        { k: 'after', v: ch.after, label: ch.afterLabel },
+                      ].map((b) => (
+                        <div class={`cs__col cs__col--${b.k}`} style={`--h: ${b.v / ch.after}`}>
+                          <span class="cs__col-value">{fmt(ch.unit, b.v, ch.suffix)}</span>
+                          <span
+                            class="cs__col-bar"
+                            tabindex="0"
+                            data-tip={`${b.label}: ${fmt(ch.unit, b.v, ch.suffix)} revenue`}
+                            aria-label={`${b.label}: ${fmt(ch.unit, b.v, ch.suffix)} revenue`}
+                          />
+                          <span class="cs__col-label">{b.label}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <figcaption class="visually-hidden">
+                      Revenue before and after working with Vistaar
+                    </figcaption>
+                    <table class="visually-hidden">
+                      <tr>
+                        <th scope="col">Period</th>
+                        <th scope="col">Revenue</th>
+                      </tr>
+                      <tr>
+                        <td>{ch.beforeLabel}</td>
+                        <td>{fmt(ch.unit, ch.before, ch.suffix)}</td>
+                      </tr>
+                      <tr>
+                        <td>{ch.afterLabel}</td>
+                        <td>{fmt(ch.unit, ch.after, ch.suffix)}</td>
+                      </tr>
+                    </table>
+                  </figure>
+                )}
+
+                {ch.type === 'roas' && (
+                  <figure class="cs__chart cs__chart--roas">
+                    <div class="cs__scale" style={`--max: ${ch.max}`}>
+                      <span class="cs__breakeven" style={`--x: ${1 / ch.max}`} aria-hidden="true">
+                        <span>Break-even 1×</span>
+                      </span>
+                      <div class="cs__bar-track">
+                        {ch.range ? (
+                          <>
+                            <span
+                              class="cs__bar"
+                              style={`--w: ${ch.range[0] / ch.max}`}
+                              tabindex="0"
+                              data-tip={`At least ${ch.range[0]}× ROAS`}
+                              aria-label={`At least ${ch.range[0]} times return on ad spend`}
+                            />
+                            <span
+                              class="cs__band"
+                              style={`--x: ${ch.range[0] / ch.max}; --w: ${(ch.range[1] - ch.range[0]) / ch.max}`}
+                              tabindex="0"
+                              data-tip={`Up to ${ch.range[1]}× ROAS`}
+                              aria-label={`Up to ${ch.range[1]} times return on ad spend`}
+                            />
+                          </>
+                        ) : (
+                          <span
+                            class="cs__bar"
+                            style={`--w: ${ch.value / ch.max}`}
+                            tabindex="0"
+                            data-tip={`${ch.prefix ?? ''} ${ch.value}× ROAS`.trim()}
+                            aria-label={`${ch.prefix ?? ''} ${ch.value} times return on ad spend`.trim()}
+                          />
+                        )}
+                      </div>
+                      <div class="cs__ticks" aria-hidden="true">
+                        {ticksFor(ch.max).map((t) => (
+                          <span style={`--x: ${t / ch.max}`}>{t}×</span>
+                        ))}
+                      </div>
+                      <p class="cs__roas-note" aria-hidden="true">
+                        {ch.range
+                          ? `₹1 of ad spend returned ₹${ch.range[0]}–${ch.range[1]} in ticket sales`
+                          : `₹1 of ad spend returned up to ₹${ch.value} in sales`}
+                      </p>
+                    </div>
+                    <figcaption class="visually-hidden">{ch.metric}</figcaption>
+                    <table class="visually-hidden">
+                      <tr>
+                        <th scope="col">Measure</th>
+                        <th scope="col">Value</th>
+                      </tr>
+                      <tr>
+                        <td>{ch.metric}</td>
+                        <td>{ch.range ? `${ch.range[0]}–${ch.range[1]}×` : `${ch.prefix ?? ''} ${ch.value}×`}</td>
+                      </tr>
+                      <tr>
+                        <td>Break-even</td>
+                        <td>1×</td>
+                      </tr>
+                    </table>
+                  </figure>
+                )}
+
+                <p class="cs__result">
+                  <strong class="cs__result-value" set:html={countUp(c.result.value)} />
+                  <span class="cs__result-label">{c.result.label}</span>
+                </p>
+              </article>
+            </li>
+          );
+        })
+      }
+    </ul>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-cs]').forEach((section) => {
+    const track = section.querySelector<HTMLElement>('[data-cs-track]')!;
+    const cards = [...section.querySelectorAll<HTMLElement>('[data-cs-card]')];
+    const prev = section.querySelector<HTMLButtonElement>('[data-cs-prev]')!;
+    const next = section.querySelector<HTMLButtonElement>('[data-cs-next]')!;
+    const current = section.querySelector<HTMLElement>('[data-cs-current]');
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    function countUp(card: Element) {
+      card.querySelectorAll<HTMLElement>('[data-cs-count]').forEach((el) => {
+        const target = Number(el.dataset.csCount);
+        const start = performance.now();
+        const tick = (now: number) => {
+          const t = Math.min(1, (now - start) / 1200);
+          el.textContent = String(Math.round(target * (1 - Math.pow(1 - t, 3))));
+          if (t < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      });
+    }
+
+    // Charts grow and figures count up when their card comes into view.
+    const io = new IntersectionObserver(
+      (entries) =>
+        entries.forEach((e) => {
+          if (!e.isIntersecting) return;
+          e.target.classList.add('is-in');
+          countUp(e.target);
+          io.unobserve(e.target);
+        }),
+      { threshold: 0.35 },
+    );
+    if (reduce.matches || !('IntersectionObserver' in window)) cards.forEach((c) => c.classList.add('is-in'));
+    else cards.forEach((c) => io.observe(c));
+    section.classList.add('is-enhanced');
+
+    const step = () => (cards[1] ? cards[1].offsetLeft - cards[0].offsetLeft : track.clientWidth);
+
+    function sync() {
+      const i = Math.round(track.scrollLeft / step());
+      if (current) current.textContent = String(Math.min(cards.length, i + 1));
+      prev.disabled = track.scrollLeft <= 4;
+      next.disabled = track.scrollLeft >= track.scrollWidth - track.clientWidth - 4;
+    }
+
+    const go = (dir: number) =>
+      track.scrollBy({ left: dir * step(), behavior: reduce.matches ? 'auto' : 'smooth' });
+    prev.addEventListener('click', () => go(-1));
+    next.addEventListener('click', () => go(1));
+    track.addEventListener('scroll', () => requestAnimationFrame(sync), { passive: true });
+    window.addEventListener('resize', sync);
+    sync();
+  });
+</script>
+
+<style>
+  .cs {
+    --cs-muted-mark: color-mix(in srgb, var(--color-ink) 36%, var(--color-bg));
+    --cs-band: rgb(var(--color-brand-rgb) / 0.35);
+    overflow: clip;
+  }
+
+  /* ---------- Header ---------- */
+  .cs__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-5);
+    margin-bottom: clamp(var(--space-6), 3vw, var(--space-7));
+  }
+
+  .cs__head-text {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .cs__counter {
+    margin-left: 0.35em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .cs__intro {
+    max-width: 38rem;
+    font-size: var(--fs-lead);
+    font-weight: var(--fw-medium);
+    color: var(--color-text);
+  }
+
+  .cs__nav {
+    display: flex;
+    gap: var(--space-2);
+  }
+
+  .cs__btn {
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border: 1px solid var(--color-line);
+    border-radius: 50%;
+    background: var(--color-bg);
+    color: var(--color-ink);
+    cursor: pointer;
+    transition:
+      background-color var(--dur-fast) var(--ease-out),
+      color var(--dur-fast) var(--ease-out),
+      opacity var(--dur-fast) var(--ease-out);
+  }
+
+  .cs__btn svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .cs__btn:not(:disabled):hover {
+    background: var(--color-ink);
+    color: var(--color-on-brand);
+  }
+
+  .cs__btn:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+
+  /* ---------- Track ---------- */
+  .cs__track {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: min(88%, 560px);
+    gap: var(--space-4);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    padding-bottom: var(--space-2);
+  }
+
+  .cs__track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .cs__track:focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 4px;
+    border-radius: var(--radius-card);
+  }
+
+  @media (min-width: 900px) {
+    .cs__track {
+      grid-auto-columns: calc((100% - var(--space-5)) / 2);
+      gap: var(--space-5);
+    }
+  }
+
+  /* ---------- Card ---------- */
+  .cs__card {
+    position: relative; /* contains the visually hidden data tables */
+    scroll-snap-align: start;
+    display: flex;
+  }
+
+  .cs__inner {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    width: 100%;
+    padding: clamp(var(--space-5), 2.4vw, 30px);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-card);
+    background: var(--color-bg);
+  }
+
+  .cs__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    min-height: 58px;
+  }
+
+  .cs__client {
+    margin: 0;
+    line-height: 0;
+  }
+
+  .cs__logo {
+    width: auto;
+    max-width: 150px;
+    max-height: 52px;
+  }
+
+  .cs__wordmark {
+    font-size: 1.5rem;
+    font-weight: var(--fw-bold);
+    letter-spacing: 0.06em;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .cs__sector {
+    flex: none;
+    padding: 6px 14px;
+    border-radius: var(--radius-pill);
+    background: var(--color-surface);
+    font-size: var(--fs-small);
+    font-weight: var(--fw-medium);
+    color: var(--color-text);
+  }
+
+  .cs__block {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .cs__label {
+    font-size: var(--fs-small);
+    font-weight: var(--fw-bold);
+    letter-spacing: var(--tracking-eyebrow);
+    text-transform: uppercase;
+    color: var(--color-brand);
+  }
+
+  .cs__block p {
+    font-size: var(--fs-body);
+    line-height: 1.5;
+    color: var(--color-text);
+  }
+
+  .cs__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .cs__tags li {
+    padding: 5px 12px;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-pill);
+    font-size: var(--fs-small);
+    font-weight: var(--fw-medium);
+    color: var(--color-text);
+  }
+
+  /* ---------- Charts (shared) ---------- */
+  .cs__chart {
+    margin: var(--space-2) 0 0;
+    padding: var(--space-4) var(--space-4) var(--space-3);
+    border-radius: 14px;
+    background: var(--color-surface);
+  }
+
+  /* Hover / focus tooltip on marks */
+  [data-tip] {
+    position: relative;
+    outline: none;
+  }
+
+  [data-tip]::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    z-index: 3;
+    padding: 5px 9px;
+    border-radius: 6px;
+    background: var(--color-ink);
+    color: var(--color-on-brand);
+    font-size: 0.75rem;
+    font-weight: var(--fw-semibold);
+    white-space: nowrap;
+    opacity: 0;
+    transform: translate(-50%, 4px);
+    transition:
+      opacity var(--dur-fast) var(--ease-out),
+      transform var(--dur-fast) var(--ease-out);
+    pointer-events: none;
+  }
+
+  [data-tip]:hover::after,
+  [data-tip]:focus-visible::after {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+
+  [data-tip]:focus-visible {
+    box-shadow: 0 0 0 2px var(--color-surface), 0 0 0 4px var(--color-ink);
+  }
+
+  /* ---------- Growth: before → after columns ---------- */
+  .cs__plot {
+    --plot-h: 132px;
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: end;
+    height: calc(var(--plot-h) + 52px);
+    padding-top: 22px;
+  }
+
+  .cs__grid {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 26px;
+    height: 1px;
+    background: color-mix(in srgb, var(--color-ink) 18%, transparent); /* baseline */
+  }
+
+  .cs__col {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    align-content: end;
+    gap: 6px;
+    height: 100%;
+  }
+
+  .cs__col-bar {
+    display: block;
+    width: 24px;
+    height: calc(var(--plot-h) * var(--h));
+    border-radius: 4px 4px 0 0;
+    background: var(--cs-muted-mark);
+    transform-origin: bottom;
+    cursor: default;
+  }
+
+  .cs__col--after .cs__col-bar {
+    background: var(--color-brand);
+  }
+
+  .cs__col-value {
+    order: -1;
+    font-size: var(--fs-body);
+    font-weight: var(--fw-bold);
+    color: var(--color-ink);
+  }
+
+  .cs__col-label {
+    height: 20px;
+    font-size: 0.75rem;
+    font-weight: var(--fw-semibold);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+
+  /* Dashed connector from the before cap to the after cap, with the multiple */
+  .cs__connector {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(22px + 30px);
+    height: calc(var(--plot-h) - 4px);
+    width: 100%;
+    overflow: visible;
+    pointer-events: none;
+  }
+
+  .cs__connector path {
+    fill: none;
+    stroke: var(--color-brand);
+    stroke-width: 1.5;
+    stroke-dasharray: 3 4;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .cs__multiple {
+    position: absolute;
+    left: 50%;
+    top: calc(22px + 30px + var(--plot-h) * (1 - var(--before)) / 2 - 14px);
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+    background: var(--color-brand);
+    color: var(--color-on-brand);
+    font-size: var(--fs-small);
+    font-weight: var(--fw-bold);
+    transform: translateX(-50%);
+  }
+
+  /* ---------- ROAS: bar on a 0 → max scale ---------- */
+  .cs__scale {
+    position: relative;
+    display: grid;
+    gap: 8px;
+    padding-top: 26px;
+  }
+
+  .cs__bar-track {
+    position: relative;
+    height: 24px;
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--color-ink) 7%, var(--color-surface));
+  }
+
+  .cs__bar,
+  .cs__band {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    display: block;
+    transform-origin: left;
+  }
+
+  .cs__bar {
+    left: 0;
+    width: calc(var(--w) * 100%);
+    border-radius: 0 4px 4px 0;
+    background: var(--color-brand);
+  }
+
+  .cs__band {
+    left: calc(var(--x) * 100% + 2px);
+    width: calc(var(--w) * 100% - 2px);
+    border-radius: 0 4px 4px 0;
+    background: var(--cs-band);
+  }
+
+  .cs__breakeven {
+    position: absolute;
+    left: calc(var(--x) * 100%);
+    top: 0;
+    bottom: 22px;
+    width: 1px;
+    background: var(--color-ink);
+    z-index: 2;
+  }
+
+  .cs__breakeven span {
+    position: absolute;
+    top: 0;
+    left: 6px;
+    font-size: 0.6875rem;
+    font-weight: var(--fw-bold);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--color-text-muted);
+  }
+
+  .cs__ticks {
+    position: relative;
+    height: 16px;
+  }
+
+  .cs__ticks span {
+    position: absolute;
+    left: calc(var(--x) * 100%);
+    font-size: 0.75rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-text-muted);
+    transform: translateX(-50%);
+  }
+
+  .cs__ticks span:first-child {
+    transform: none;
+  }
+
+  .cs__ticks span:last-child {
+    transform: translateX(-100%);
+  }
+
+  .cs__roas-note {
+    margin-top: var(--space-1);
+    font-size: var(--fs-small);
+    font-weight: var(--fw-medium);
+    color: var(--color-text);
+  }
+
+  /* ---------- Result bar ---------- */
+  .cs__result {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2) var(--space-4);
+    margin-top: auto;
+    padding: var(--space-4) var(--space-5);
+    border-radius: 12px;
+    background: var(--color-ink);
+    color: var(--color-on-brand);
+  }
+
+  .cs__result-value {
+    font-size: clamp(1.75rem, 1.3rem + 1.6vw, 2.5rem);
+    font-weight: var(--fw-bold);
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+
+  .cs__result-label {
+    font-size: var(--fs-small);
+    font-weight: var(--fw-medium);
+    color: rgb(255 255 255 / 0.78);
+  }
+
+  /* ---------- Entrance: marks grow from the baseline when the card is in view ---------- */
+  .cs.is-enhanced .cs__col-bar {
+    transform: scaleY(0);
+    transition: transform 900ms var(--ease-out);
+  }
+
+  .cs.is-enhanced .cs__col--after .cs__col-bar {
+    transition-delay: 200ms;
+  }
+
+  .cs.is-enhanced .cs__col-value,
+  .cs.is-enhanced .cs__multiple,
+  .cs.is-enhanced .cs__roas-note {
+    opacity: 0;
+    transition: opacity 500ms var(--ease-out) 700ms;
+  }
+
+  .cs.is-enhanced .cs__connector {
+    opacity: 0;
+    transition: opacity 500ms var(--ease-out) 650ms;
+  }
+
+  .cs.is-enhanced .cs__bar {
+    transform: scaleX(0);
+    transition: transform 1000ms var(--ease-out);
+  }
+
+  .cs.is-enhanced .cs__band {
+    opacity: 0;
+    transform: scaleX(0);
+    transition:
+      transform 700ms var(--ease-out) 800ms,
+      opacity 300ms var(--ease-out) 800ms;
+  }
+
+  .cs.is-enhanced .cs__result {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0);
+    transition:
+      opacity 500ms var(--ease-out) 300ms,
+      transform 500ms var(--ease-out) 300ms;
+  }
+
+  .cs__card.is-in .cs__col-bar,
+  .cs__card.is-in .cs__bar,
+  .cs__card.is-in .cs__band {
+    transform: none;
+    opacity: 1;
+  }
+
+  .cs__card.is-in .cs__col-value,
+  .cs__card.is-in .cs__multiple,
+  .cs__card.is-in .cs__roas-note,
+  .cs__card.is-in .cs__result {
+    opacity: 1;
+    transform: none;
+  }
+
+  .cs__card.is-in .cs__multiple {
+    transform: translateX(-50%);
+  }
+
+  .cs__card.is-in .cs__connector {
+    opacity: 1;
+  }
+
+  @media (max-width: 599px) {
+    .cs__top {
+      flex-wrap: wrap;
+    }
+  }
+</style>

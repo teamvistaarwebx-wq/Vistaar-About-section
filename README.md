@@ -64,3 +64,11 @@ A centred heading ("We begin with **the problem**, not a service.") and subheadi
 - **Motion allowed (all widths):** the diagram pins. A red line draws around the ring, and each node fills red as the line reaches it. Once Improve fills, the dashed loop flows back to Research and the centre lights up. A caption names the current step.
 - **Phones:** the step names don't fit around the ring, so only the numbers sit there and the caption names each step.
 - **Reduced motion or no JS:** the finished diagram is shown at rest.
+
+## Case studies
+
+This section sits after How we work. It's a swipeable row of cards: two show on desktop and one on phones, with prev/next buttons and an "n / 3" counter. Each card has the logo and sector, the challenge, what we did, tags, a small chart and a black result bar. Content is in `caseStudies` in `src/data/about.js`.
+
+- The charts show only the reported numbers. A `growth` chart draws before/after columns (₹15L to ₹30L, with a ×2 marker). A `roas` chart draws return on ad spend on a scale with a 1× break-even line; a `[min, max]` range shows as a solid bar plus a lighter band.
+- The bars grow and the result figures count up when a card comes into view. Every mark has a direct label and a hover/focus tooltip, and each chart has a hidden data table for screen readers.
+- The client logos in `public/assets/about/clients/` are interim crops from a screenshot, so replace them with the official SVG or PNG files.

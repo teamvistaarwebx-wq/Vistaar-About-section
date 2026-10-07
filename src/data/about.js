@@ -199,6 +199,51 @@ export const howWeWork = {
 };
 
 /**
+ * Case studies (snapshot after How we work).
+ * Sources: Mommy's Chicken and Jam2gather from the client case-study slide supplied by the team;
+ * HART Cosmetics from the 2026 profile (Case Study 01). Only reported numbers are charted:
+ * - chart.type 'growth': before → after values (₹ lakh)
+ * - chart.type 'roas':   return on ad spend, a single value or a [min, max] range, against 1× break-even
+ */
+export const caseStudies = {
+  eyebrow: 'Case studies',
+  title: 'Challenge, work, result.',
+  intro: 'A snapshot of what changed for three brands when strategy, content and performance worked as one system.',
+  items: [
+    {
+      client: "Mommy's Chicken",
+      logo: { src: '/assets/about/clients/mommys-chicken.png', width: 128, height: 58 },
+      sector: 'Fresh Meat · Food',
+      challenge: 'Selling across Blinkit, Zomato and Instamart, but with a weak website and no direct online sales.',
+      work: 'Fixed the website and built e-commerce, managed quick commerce across platforms, and ran content and ads together.',
+      tags: ['E-commerce', 'Quick commerce', 'Content & ads'],
+      chart: { type: 'growth', before: 15, after: 30, unit: '₹', suffix: 'L', beforeLabel: 'Before', afterLabel: 'After' },
+      result: { value: '₹15L → ₹30L', label: 'Revenue, doubled' },
+    },
+    {
+      client: 'Jam2gather',
+      logo: { src: '/assets/about/clients/jam2gather.png', width: 202, height: 32 },
+      sector: 'Live Music · Events',
+      challenge: 'Selling tickets for live jamming events, one city and one date at a time.',
+      work: 'Ran Meta ads with copy and creative for every event, rebuilt campaigns around sales, and built a funnel for a new wedding vertical.',
+      tags: ['Meta Ads', 'Creative', 'Copy', 'Funnels'],
+      chart: { type: 'roas', range: [10, 14], max: 15, metric: 'ROAS on ticket sales' },
+      result: { value: '10–14X', label: 'ROAS on ticket sales' },
+    },
+    {
+      client: 'HART Cosmetics',
+      logo: null,
+      sector: 'Skincare · D2C',
+      challenge: 'Standing out in one of the most crowded beauty categories online, with one consistent journey across social, content, UGC, ads and e-commerce.',
+      work: 'Ran social media for the brand and the founder, built a UGC pipeline of about 10 videos a month, and kept performance marketing running with fresh creative angles.',
+      tags: ['Social media', 'UGC', 'Performance marketing'],
+      chart: { type: 'roas', value: 3, max: 4, prefix: 'Up to', metric: 'ROAS from performance marketing' },
+      result: { value: 'Up to 3X', label: 'ROAS from performance marketing' },
+    },
+  ],
+};
+
+/**
  * Principles. `image` fills the panel revealed when a card opens. Use a path in
  * /public/assets/about/principles/ (e.g. '/assets/about/principles/01-problems.webp'),
  * or null to show the typographic panel ("Problems / before / services") instead.
