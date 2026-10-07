@@ -69,6 +69,8 @@ A centred heading ("We begin with **the problem**, not a service.") and subheadi
 
 This section sits after How we work. It's a swipeable row of cards: two show on desktop and one on phones, with prev/next buttons and an "n / 3" counter. Each card has the logo and sector, the challenge, what we did, tags, a small chart and a black result bar. Content is in `caseStudies` in `src/data/about.js`.
 
-- The charts show only the reported numbers. A `growth` chart draws before/after columns (₹15L to ₹30L, with a ×2 marker). A `roas` chart draws return on ad spend on a scale with a 1× break-even line; a `[min, max]` range shows as a solid bar plus a lighter band.
-- The bars grow and the result figures count up when a card comes into view. Every mark has a direct label and a hover/focus tooltip, and each chart has a hidden data table for screen readers.
+- The charts show only the reported numbers.
+  - A `growth` chart is a before/after line with a shaded area (₹15L to ₹30L). The line draws itself, the area fades in, both points pop, a "+100%" badge lands on the line, and the end point pulses.
+  - A `roas` chart shows "You spend ₹1" as one black block and "You get back" as one red block per ₹1 returned, popping in one after another. A `[min, max]` range adds lighter blocks for the upper end (Jam2gather gets 10 solid and 4 light blocks; HART gets 3).
+- The animations and the result count-up play each time a card scrolls back into view. With reduced motion, the finished chart is shown at rest. Every mark has a direct label and a hover/focus tooltip, and each chart has a hidden data table for screen readers.
 - The client logos in `public/assets/about/clients/` are interim crops from a screenshot, so replace them with the official SVG or PNG files.
