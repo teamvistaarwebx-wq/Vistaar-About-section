@@ -1,36 +1,35 @@
 ---
 /**
- * Case studies snapshot (after How we work).
+ * Case studies snapshot (after How we work), laid out like the printed case-study spreads.
  *
- * A swipeable row of cards (two visible on desktop, one on phones) with prev/next buttons and an
- * "n / 3" counter. Each card: logo + sector, the challenge, what we did, tags, a small chart of the
- * reported result, and a black result bar.
+ * One spread per slide (with the next one peeking on phones), prev/next buttons and an "n / 4"
+ * counter. Left: logo + sector, a headline and the challenge → work → result story with red arrows.
+ * Right: a minimal before/after bar chart (grey before, brand red after, on a labelled axis with
+ * gridlines), the headline figure, and the source note.
  *
- * Charts show only the numbers the case study reports (no invented in-between data):
- * - growth: before → after columns (emphasis: grey before, brand red after) with a ×N connector
- * - growth: a two-point line (before → after) with an area wash and a +N% badge
- * - roas:   unit blocks, one per ₹1 returned against one ₹1 spend block; a [min, max] range
- *           adds lighter blocks up to the maximum
- * Marks grow from the baseline when the card scrolls into view; the result figures count up.
- * Every mark is direct-labelled and each chart has a visually hidden data table.
+ * Charts show only the reported numbers. A bar with `upto` adds a lighter band for the top of a
+ * range (Jam2gather's 10–14×). When a spread comes into view the gridlines draw, the bars rise one
+ * after another, the values land and the headline figure counts up; it replays on re-entry.
+ * Every bar is direct-labelled with a hover/focus tooltip, and each chart has a hidden data table.
  */
 import { caseStudies } from '../../data/about.js';
 
-const fmt = (unit = '', v: number, suffix = '') => `${unit}${v}${suffix}`;
-/** Wrap each number in a count-up span; the card counts them up when it comes into view. */
+/** Wrap each number in a count-up span; the spread counts them up when it comes into view. */
 const countUp = (text: string) =>
-  text.replace(/\d+/g, (n) => `<span class="cs__count" data-cs-count="${n}">${n}</span>`);
+  text.replace(/\d+(?:\.\d+)?/g, (n) => `<span class="cs__count" data-cs-count="${n}">${n}</span>`);
 const total = caseStudies.items.length;
 
-/** Growth line chart geometry (viewBox 320 × 170): two real points joined by a straight line. */
-const G = { x0: 40, x1: 284, base: 140, top: 30 };
-const gy = (v: number, max: number) => G.base - (v / max) * (G.base - G.top);
-/** ROAS unit chart: one block per ₹1 returned. */
-const units = (ch: { range?: number[]; value?: number }) => {
-  const solid = ch.range ? ch.range[0] : ch.value ?? 0;
-  const extra = ch.range ? ch.range[1] - ch.range[0] : 0;
-  return [...Array(solid).fill('solid'), ...Array(extra).fill('range')];
+type Bar = { label: string; value: number; upto?: number; prefix?: string };
+type Chart = { max: number; step: number; decimals: number; format: string; bars: Bar[] };
+const show = (ch: Chart, v: number) => ch.format.replace('{v}', String(v));
+const barValue = (ch: Chart, b: Bar) =>
+  b.upto ? ch.format.replace('{v}', `${b.value}–${b.upto}`) : `${b.prefix ?? ''}${show(ch, b.value)}`;
+const ticks = (ch: Chart) => {
+  const out: string[] = [];
+  for (let k = 0; k * ch.step <= ch.max + 1e-9; k++) out.push((k * ch.step).toFixed(ch.decimals));
+  return out;
 };
+const pct = (v: number, max: number) => `${((v / max) * 100).toFixed(2)}%`;
 ---
 
 <section class="section cs" aria-labelledby="cs-title" data-cs>
@@ -66,138 +65,119 @@ const units = (ch: { range?: number[]; value?: number }) => {
           return (
             <li class="cs__card" data-cs-card={i}>
               <article class="cs__inner" aria-labelledby={`cs-client-${i}`}>
-                <div class="cs__top">
-                  <h3 class="cs__client" id={`cs-client-${i}`}>
-                    {c.logo ? (
-                      <img
-                        class="cs__logo"
-                        src={c.logo.src}
-                        alt={c.client}
-                        width={c.logo.width}
-                        height={c.logo.height}
-                        loading="lazy"
-                        decoding="async"
-                      />
-                    ) : (
-                      <span class="cs__wordmark">{c.client}</span>
-                    )}
-                  </h3>
-                  <span class="cs__sector">{c.sector}</span>
-                </div>
-
-                <div class="cs__block">
-                  <h4 class="cs__label">The challenge</h4>
-                  <p>{c.challenge}</p>
-                </div>
-                <div class="cs__block">
-                  <h4 class="cs__label">What we did</h4>
-                  <p>{c.work}</p>
-                </div>
-                <ul class="cs__tags" aria-label="Services">
-                  {c.tags.map((t) => (
-                    <li>{t}</li>
-                  ))}
-                </ul>
-
-                {ch.type === 'growth' && (
-                  <figure class="cs__chart cs__chart--growth">
-                    <div class="cs__line-wrap">
-                      <svg class="cs__line" viewBox="0 0 320 170" aria-hidden="true">
-                        {[0, ch.before, ch.after].map((t) => (
-                          <g class="cs__gridrow">
-                            <line x1={G.x0 - 24} x2={G.x1 + 16} y1={gy(t, ch.after)} y2={gy(t, ch.after)} />
-                          </g>
-                        ))}
-                        <path
-                          class="cs__area"
-                          d={`M${G.x0} ${G.base} L${G.x0} ${gy(ch.before, ch.after)} L${G.x1} ${gy(ch.after, ch.after)} L${G.x1} ${G.base} Z`}
+                <div class="cs__story">
+                  <div class="cs__top">
+                    <h3 class="cs__client" id={`cs-client-${i}`}>
+                      {c.logo ? (
+                        <img
+                          class="cs__logo"
+                          src={c.logo.src}
+                          alt={c.client}
+                          width={c.logo.width}
+                          height={c.logo.height}
+                          loading="lazy"
+                          decoding="async"
                         />
-                        <path
-                          class="cs__trend"
-                          d={`M${G.x0} ${gy(ch.before, ch.after)} L${G.x1} ${gy(ch.after, ch.after)}`}
-                          pathLength="100"
-                        />
-                        <circle class="cs__pt cs__pt--before" cx={G.x0} cy={gy(ch.before, ch.after)} r="6" />
-                        <circle class="cs__pt cs__pt--after" cx={G.x1} cy={gy(ch.after, ch.after)} r="6" />
-                        <circle class="cs__pt-pulse" cx={G.x1} cy={gy(ch.after, ch.after)} r="6" />
-                        <text class="cs__xlab" x={G.x0} y="164" text-anchor="middle">{ch.beforeLabel}</text>
-                        <text class="cs__xlab" x={G.x1} y="164" text-anchor="middle">{ch.afterLabel}</text>
-                      </svg>
-                      {[
-                        { k: 'before', v: ch.before, x: G.x0, label: ch.beforeLabel },
-                        { k: 'after', v: ch.after, x: G.x1, label: ch.afterLabel },
-                      ].map((pt) => (
-                        <span
-                          class={`cs__pt-hit cs__pt-hit--${pt.k}`}
-                          style={`left: ${((pt.x / 320) * 100).toFixed(2)}%; top: ${((gy(pt.v, ch.after) / 170) * 100).toFixed(2)}%`}
-                          tabindex="0"
-                          data-tip={`${pt.label}: ${fmt(ch.unit, pt.v, ch.suffix)} revenue`}
-                          aria-label={`${pt.label}: ${fmt(ch.unit, pt.v, ch.suffix)} revenue`}
-                        >
-                          <span class="cs__pt-value">{fmt(ch.unit, pt.v, ch.suffix)}</span>
-                        </span>
-                      ))}
-                      <span class="cs__growth-badge" aria-hidden="true">
-                        +{Math.round(((ch.after - ch.before) / ch.before) * 100)}%
-                      </span>
-                    </div>
-                    <figcaption class="visually-hidden">Revenue before and after working with Vistaar</figcaption>
-                    <table class="visually-hidden">
-                      <tr><th scope="col">Period</th><th scope="col">Revenue</th></tr>
-                      <tr><td>{ch.beforeLabel}</td><td>{fmt(ch.unit, ch.before, ch.suffix)}</td></tr>
-                      <tr><td>{ch.afterLabel}</td><td>{fmt(ch.unit, ch.after, ch.suffix)}</td></tr>
-                    </table>
-                  </figure>
-                )}
-
-                {ch.type === 'roas' && (
-                  <figure class="cs__chart cs__chart--roas">
-                    <div class="cs__units">
-                      <div class="cs__unit-row">
-                        <span class="cs__unit-label">You spend</span>
-                        <span class="cs__unit-blocks">
-                          <span class="cs__unit cs__unit--spend" style="--i: 0" tabindex="0" data-tip="₹1 of ad spend" aria-label="₹1 of ad spend" />
-                        </span>
-                        <span class="cs__unit-total">₹1</span>
-                      </div>
-                      <div class="cs__unit-row">
-                        <span class="cs__unit-label">You get back</span>
-                        <span class="cs__unit-blocks">
-                          {units(ch).map((kind, k) => (
-                            <span
-                              class={`cs__unit cs__unit--${kind}`}
-                              style={`--i: ${k + 2}`}
-                              data-tip={kind === 'range' ? `Up to ₹${k + 1} back` : `₹${k + 1} back`}
-                            />
-                          ))}
-                        </span>
-                        <span class="cs__unit-total">
-                          {ch.range ? `₹${ch.range[0]}–${ch.range[1]}` : `${ch.prefix ? ch.prefix + ' ' : ''}₹${ch.value}`}
-                        </span>
-                      </div>
-                    </div>
-                    <p class="cs__roas-note" aria-hidden="true">
-                      <span class="cs__key cs__key--solid" />Each block is ₹1 back
-                      {ch.range && (
-                        <>
-                          <span class="cs__key cs__key--range" />upper end of the range
-                        </>
+                      ) : (
+                        <span class="cs__wordmark">{c.client}</span>
                       )}
-                      <span class="cs__key cs__key--spend" />₹1 spent = break-even
-                    </p>
-                    <figcaption class="visually-hidden">{ch.metric}</figcaption>
+                    </h3>
+                    <span class="cs__sector">{c.sector}</span>
+                  </div>
+
+                  <p class="cs__headline">{c.headline}</p>
+
+                  <ol class="cs__steps">
+                    {[
+                      ['The challenge', c.challenge],
+                      ['What we did', c.work],
+                      ['The result', c.result],
+                    ].map(([label, text]) => (
+                      <li class="cs__step">
+                        <h4 class="cs__label">{label}</h4>
+                        <p>{text}</p>
+                      </li>
+                    ))}
+                  </ol>
+
+                  <ul class="cs__tags" aria-label="Services">
+                    {c.tags.map((t) => (
+                      <li>{t}</li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div class="cs__visual">
+                  <figure class="cs__chart">
+                    <figcaption class="cs__chart-cap">
+                      <span class="cs__chart-client">{c.client}</span> · {c.chart.caption}
+                    </figcaption>
+                    <p class="cs__axis" aria-hidden="true">{c.chart.axis}</p>
+                    <div class="cs__plot">
+                      <ol class="cs__ticks" aria-hidden="true">
+                        {ticks(c.chart).map((t, k) => (
+                          <li style={`bottom: ${pct(Number(t), c.chart.max)}; --k: ${k}`}>
+                            <span>{t}</span>
+                          </li>
+                        ))}
+                      </ol>
+                      <div class="cs__bars">
+                        {c.chart.bars.map((bar, k) => {
+                          const top = bar.upto ?? bar.value;
+                          const tip = `${bar.label}: ${barValue(c.chart, bar)}`;
+                          return (
+                            <div class={`cs__col cs__col--${k === 0 ? 'base' : 'focus'}`} style={`--k: ${k}`}>
+                              <span
+                                class="cs__bar"
+                                style={`height: ${pct(top, c.chart.max)}; --solid: ${((bar.value / top) * 100).toFixed(2)}%`}
+                                tabindex="0"
+                                data-tip={tip}
+                                aria-label={tip}
+                              >
+                                <span class="cs__bar-val" aria-hidden="true">{barValue(c.chart, bar)}</span>
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    <div class="cs__xlabels" aria-hidden="true">
+                      {c.chart.bars.map((bar) => (
+                        <span>{bar.label}</span>
+                      ))}
+                    </div>
                     <table class="visually-hidden">
-                      <tr><th scope="col">Measure</th><th scope="col">Value</th></tr>
-                      <tr><td>{ch.metric}</td><td>{ch.range ? `${ch.range[0]}–${ch.range[1]}×` : `${ch.prefix ?? ''} ${ch.value}×`}</td></tr>
-                      <tr><td>Return on ₹1 of ad spend</td><td>{ch.range ? `₹${ch.range[0]}–${ch.range[1]}` : `${ch.prefix ?? ''} ₹${ch.value}`}</td></tr>
+                      <tr><th scope="col">{c.chart.axis}</th><th scope="col">Value</th></tr>
+                      {c.chart.bars.map((bar) => (
+                        <tr><td>{bar.label}</td><td>{barValue(c.chart, bar)}</td></tr>
+                      ))}
                     </table>
                   </figure>
-                )}
 
-                <p class="cs__result">
-                  <strong class="cs__result-value" set:html={countUp(c.result.value)} />
-                  <span class="cs__result-label">{c.result.label}</span>
-                </p>
+                  <div class="cs__outcome">
+                    {c.phases?.map((ph) => (
+                      <div class="cs__phase">
+                        <p class="cs__phase-label">{ph.label}</p>
+                        <p class="cs__phase-text">{ph.text}</p>
+                      </div>
+                    ))}
+                    {c.phases && <span class="cs__phase-link" aria-hidden="true" />}
+                    <div class:list={['cs__stat', { 'cs__stat--dark': c.phases }]}>
+                      {c.stat.kicker && <p class="cs__phase-label">{c.stat.kicker}</p>}
+                      {c.stat.prefix && <p class="cs__stat-prefix">{c.stat.prefix}</p>}
+                      <p class="cs__stat-value">
+                        <Fragment set:html={countUp(c.stat.value)} />
+                        {c.stat.unit && <span class="cs__stat-unit">{c.stat.unit}</span>}
+                      </p>
+                      {c.stat.label && <p class="cs__stat-label">{c.stat.label}</p>}
+                      {c.stat.lines?.map((l) => (
+                        <p class="cs__stat-line">{l}</p>
+                      ))}
+                    </div>
+                  </div>
+
+                  {c.note && <p class="cs__note">{c.note}</p>}
+                </div>
               </article>
             </li>
           );
@@ -218,22 +198,25 @@ const units = (ch: { range?: number[]; value?: number }) => {
 
     function countUp(card: Element) {
       card.querySelectorAll<HTMLElement>('[data-cs-count]').forEach((el) => {
-        const target = Number(el.dataset.csCount);
-        const start = performance.now();
+        const raw = el.dataset.csCount ?? '0';
+        const target = Number(raw);
+        const dp = (raw.split('.')[1] ?? '').length;
+        const start = performance.now() + 450; // starts as the figure fades in
+        el.textContent = (0).toFixed(dp);
         const tick = (now: number) => {
-          const t = Math.min(1, (now - start) / 1200);
-          el.textContent = String(Math.round(target * (1 - Math.pow(1 - t, 3))));
+          const t = Math.min(1, Math.max(0, (now - start) / 1200));
+          el.textContent = (target * (1 - Math.pow(1 - t, 3))).toFixed(dp);
           if (t < 1) requestAnimationFrame(tick);
         };
         requestAnimationFrame(tick);
       });
     }
 
-    // Charts animate and figures count up each time a card comes into view (replays after it leaves).
+    // Charts animate and figures count up each time a spread comes into view (replays after it leaves).
     const io = new IntersectionObserver(
       (entries) =>
         entries.forEach((e) => {
-          if (e.isIntersecting && e.intersectionRatio >= 0.35) {
+          if (e.isIntersecting && e.intersectionRatio >= 0.3) {
             if (e.target.classList.contains('is-in')) return;
             e.target.classList.add('is-in');
             countUp(e.target);
@@ -241,7 +224,7 @@ const units = (ch: { range?: number[]; value?: number }) => {
             e.target.classList.remove('is-in');
           }
         }),
-      { threshold: [0, 0.35] },
+      { threshold: [0, 0.3] },
     );
     if (reduce.matches || !('IntersectionObserver' in window)) cards.forEach((c) => c.classList.add('is-in'));
     else cards.forEach((c) => io.observe(c));
@@ -345,10 +328,11 @@ const units = (ch: { range?: number[]; value?: number }) => {
   .cs__track {
     display: grid;
     grid-auto-flow: column;
-    grid-auto-columns: min(88%, 560px);
+    grid-auto-columns: min(92%, 640px);
     gap: var(--space-4);
     overflow-x: auto;
     overscroll-behavior-x: contain;
+    align-items: start;
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
     padding-bottom: var(--space-2);
@@ -366,12 +350,12 @@ const units = (ch: { range?: number[]; value?: number }) => {
 
   @media (min-width: 900px) {
     .cs__track {
-      grid-auto-columns: calc((100% - var(--space-5)) / 2);
+      grid-auto-columns: 100%;
       gap: var(--space-5);
     }
   }
 
-  /* ---------- Card ---------- */
+  /* ---------- Spread ---------- */
   .cs__card {
     position: relative; /* contains the visually hidden data tables */
     scroll-snap-align: start;
@@ -379,22 +363,36 @@ const units = (ch: { range?: number[]; value?: number }) => {
   }
 
   .cs__inner {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
+    display: grid;
+    gap: clamp(var(--space-6), 4vw, 64px);
     width: 100%;
-    padding: clamp(var(--space-5), 2.4vw, 30px);
+    padding: clamp(var(--space-5), 3vw, 48px);
     border: 1px solid var(--color-line);
     border-radius: var(--radius-card);
     background: var(--color-bg);
   }
 
+  @media (min-width: 1024px) {
+    .cs__inner {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      align-items: start;
+    }
+  }
+
+  /* ---------- Story column ---------- */
+  .cs__story {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+  }
+
   .cs__top {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: var(--space-3);
-    min-height: 58px;
+    min-height: 52px;
   }
 
   .cs__client {
@@ -409,10 +407,10 @@ const units = (ch: { range?: number[]; value?: number }) => {
   }
 
   .cs__wordmark {
-    font-size: 1.5rem;
+    font-size: 1.375rem;
     font-weight: var(--fw-bold);
     letter-spacing: 0.06em;
-    line-height: 1;
+    line-height: 1.1;
     text-transform: uppercase;
   }
 
@@ -426,9 +424,34 @@ const units = (ch: { range?: number[]; value?: number }) => {
     color: var(--color-text);
   }
 
-  .cs__block {
+  .cs__headline {
+    max-width: 18ch;
+    font-size: clamp(1.625rem, 1.15rem + 1.7vw, 2.625rem);
+    font-weight: var(--fw-bold);
+    line-height: 1.08;
+    letter-spacing: -0.025em;
+    color: var(--color-ink);
+  }
+
+  /* Challenge ↓ work ↓ result */
+  .cs__steps {
+    display: grid;
+  }
+
+  .cs__step {
     display: grid;
     gap: var(--space-1);
+  }
+
+  .cs__step + .cs__step::before {
+    content: '';
+    display: block;
+    width: 12px;
+    height: 26px;
+    margin: var(--space-2) 0;
+    background: var(--color-brand);
+    /* a thin down arrow */
+    clip-path: polygon(5.25px 0, 6.75px 0, 6.75px 19px, 12px 15px, 12px 17px, 6px 26px, 0 17px, 0 15px, 5.25px 19px);
   }
 
   .cs__label {
@@ -439,10 +462,15 @@ const units = (ch: { range?: number[]; value?: number }) => {
     color: var(--color-brand);
   }
 
-  .cs__block p {
+  .cs__step p {
     font-size: var(--fs-body);
     line-height: 1.5;
     color: var(--color-text);
+  }
+
+  .cs__step:last-child p {
+    font-weight: var(--fw-semibold);
+    color: var(--color-ink);
   }
 
   .cs__tags {
@@ -460,24 +488,261 @@ const units = (ch: { range?: number[]; value?: number }) => {
     color: var(--color-text);
   }
 
-  /* ---------- Charts (shared) ---------- */
-  .cs__chart {
-    margin: var(--space-2) 0 0;
-    padding: var(--space-4) var(--space-4) var(--space-3);
-    border-radius: 14px;
-    background: var(--color-surface);
+  /* ---------- Visual column ---------- */
+  .cs__visual {
+    --cs-axis-w: 2.5rem;
+    display: grid;
+    gap: var(--space-5);
+    align-content: start;
   }
 
-  /* Hover / focus tooltip on marks */
-  [data-tip] {
+  @media (min-width: 1200px) {
+    .cs__visual {
+      grid-template-columns: minmax(0, 1fr) 16rem;
+      align-items: center;
+    }
+
+    .cs__note {
+      grid-column: 1 / -1;
+    }
+  }
+
+  .cs__chart {
+    margin: 0;
+    padding: clamp(var(--space-4), 2vw, 28px);
+    border: 1px solid var(--color-line);
+    border-radius: 18px;
+    background: var(--color-bg);
+  }
+
+  .cs__chart-cap {
+    font-size: var(--fs-small);
+    line-height: 1.4;
+    color: var(--color-text);
+  }
+
+  .cs__chart-client {
+    font-weight: var(--fw-bold);
+    color: var(--color-ink);
+  }
+
+  .cs__axis {
+    margin-top: var(--space-4);
+    font-size: 0.6875rem;
+    font-weight: var(--fw-bold);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-ink);
+  }
+
+  .cs__plot {
     position: relative;
+    height: clamp(190px, 20vw, 270px);
+    margin-top: var(--space-6); /* room for the tallest bar's value */
+  }
+
+  .cs__ticks li {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 0;
+  }
+
+  .cs__ticks li::before {
+    content: '';
+    position: absolute;
+    left: var(--cs-axis-w);
+    right: 0;
+    border-top: 1px solid color-mix(in srgb, var(--color-ink) 7%, transparent);
+    transform-origin: left;
+  }
+
+  .cs__ticks li:first-child::before {
+    border-top-color: color-mix(in srgb, var(--color-ink) 35%, transparent);
+  }
+
+  .cs__ticks span {
+    position: absolute;
+    left: 0;
+    font-size: 0.6875rem;
+    font-weight: var(--fw-medium);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    color: var(--color-text-muted);
+    transform: translateY(-50%);
+  }
+
+  .cs__bars {
+    position: absolute;
+    inset: 0 0 0 var(--cs-axis-w);
+    display: flex;
+  }
+
+  .cs__col {
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    --bar: var(--cs-muted-mark);
+    --band: var(--cs-muted-mark);
+  }
+
+  .cs__col--focus {
+    --bar: var(--color-brand);
+    --band: var(--cs-band);
+  }
+
+  .cs__bar {
+    position: relative;
+    display: block;
+    width: min(56%, 132px);
+    min-height: 3px;
+    border-radius: 3px 3px 0 0;
+    background: linear-gradient(to top, var(--bar) var(--solid), var(--band) var(--solid));
+    transform-origin: bottom;
+  }
+
+  .cs__bar-val {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    font-size: var(--fs-body);
+    font-weight: var(--fw-bold);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    color: var(--color-ink);
+    transform: translateX(-50%);
+  }
+
+  .cs__xlabels {
+    display: flex;
+    margin-top: var(--space-2);
+    padding-left: var(--cs-axis-w);
+  }
+
+  .cs__xlabels span {
+    flex: 1;
+    font-size: var(--fs-small);
+    font-weight: var(--fw-medium);
+    text-align: center;
+    color: var(--color-text);
+  }
+
+  /* Headline figure (and Mommy's month 01 → month 02 cards) */
+  .cs__outcome {
+    container-type: inline-size;
+    min-width: 0;
+    display: grid;
+    gap: 0;
+    align-content: center;
+  }
+
+  .cs__phase {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-4) var(--space-5);
+    border: 1px solid var(--color-line);
+    border-radius: 18px;
+  }
+
+  .cs__phase-label {
+    font-size: 0.75rem;
+    font-weight: var(--fw-bold);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-ink);
+  }
+
+  .cs__phase-text {
+    font-size: var(--fs-small);
+    line-height: 1.45;
+    color: var(--color-text);
+  }
+
+  .cs__phase-link {
+    justify-self: center;
+    width: 1.5px;
+    height: 28px;
+    background: var(--color-brand);
+    transform-origin: top;
+  }
+
+  .cs__stat {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .cs__stat-value {
+    font-size: min(clamp(3rem, 2.2rem + 3vw, 4.25rem), 26cqi);
+    font-weight: var(--fw-bold);
+    line-height: 1;
+    letter-spacing: -0.035em;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    color: var(--color-brand);
+  }
+
+  .cs__stat-prefix {
+    font-size: var(--fs-body);
+    font-weight: var(--fw-bold);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-brand);
+  }
+
+  .cs__stat-unit {
+    margin-left: 0.25em;
+    font-size: 0.5em;
+    letter-spacing: -0.01em;
+  }
+
+  .cs__stat-label {
+    margin-top: var(--space-2);
+    font-size: var(--fs-body);
+    font-weight: var(--fw-bold);
+    color: var(--color-ink);
+  }
+
+  .cs__stat-line {
+    font-size: var(--fs-body);
+    color: var(--color-text);
+  }
+
+  .cs__stat--dark {
+    gap: var(--space-2);
+    padding: var(--space-5);
+    border-radius: 18px;
+    background: var(--color-ink);
+  }
+
+  .cs__stat--dark .cs__phase-label {
+    color: rgb(255 255 255 / 0.8);
+  }
+
+  .cs__stat--dark .cs__stat-value {
+    font-size: min(clamp(2.25rem, 1.8rem + 1.6vw, 3rem), 22cqi);
+    color: var(--color-on-brand);
+  }
+
+  .cs__stat--dark .cs__stat-line {
+    font-weight: var(--fw-semibold);
+    color: color-mix(in srgb, var(--color-brand) 50%, white);
+  }
+
+  .cs__note {
+    font-size: var(--fs-small);
+    color: var(--color-text-muted);
+  }
+
+  /* ---------- Tooltip on bars ---------- */
+  [data-tip] {
     outline: none;
   }
 
   [data-tip]::after {
     content: attr(data-tip);
     position: absolute;
-    bottom: calc(100% + 8px);
+    bottom: calc(100% + 36px);
     left: 50%;
     z-index: 3;
     padding: 5px 9px;
@@ -502,367 +767,65 @@ const units = (ch: { range?: number[]; value?: number }) => {
   }
 
   [data-tip]:focus-visible {
-    box-shadow: 0 0 0 2px var(--color-surface), 0 0 0 4px var(--color-ink);
+    box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-ink);
   }
 
-  /* ---------- Growth: two-point line chart with area wash ---------- */
-  .cs__line-wrap {
-    position: relative;
+  /* ---------- Entrance (replays each time a spread enters view) ---------- */
+  .cs.is-enhanced .cs__ticks li::before {
+    transform: scaleX(0);
   }
 
-  .cs__line {
-    display: block;
-    width: 100%;
-    height: auto;
-    overflow: visible;
+  .cs.is-enhanced .cs__bar {
+    transform: scaleY(0);
   }
 
-  .cs__gridrow line {
-    stroke: color-mix(in srgb, var(--color-ink) 12%, transparent);
-    stroke-width: 1;
-  }
-
-  .cs__gridrow text,
-  .cs__xlab {
-    font-family: var(--font-sans);
-    font-size: 10px;
-    font-weight: var(--fw-semibold);
-    fill: var(--color-text-muted);
-  }
-
-  .cs__xlab {
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-  }
-
-  .cs__area {
-    fill: rgb(var(--color-brand-rgb) / 0.1);
-  }
-
-  .cs__trend {
-    fill: none;
-    stroke: var(--color-brand);
-    stroke-width: 2.5;
-    stroke-linecap: round;
-    stroke-dasharray: 100;
-    stroke-dashoffset: 0;
-  }
-
-  .cs__pt {
-    stroke: var(--color-surface);
-    stroke-width: 2;
-  }
-
-  .cs__pt--before {
-    fill: var(--cs-muted-mark);
-  }
-
-  .cs__pt--after {
-    fill: var(--color-brand);
-  }
-
-  .cs__pt-pulse {
-    fill: none;
-    stroke: var(--color-brand);
-    stroke-width: 2;
-    opacity: 0;
-    transform-box: fill-box;
-    transform-origin: center;
-  }
-
-  /* HTML hit targets + value labels over the two points */
-  .cs__pt-hit {
-    position: absolute;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    cursor: default;
-  }
-
-  .cs__pt-value {
-    position: absolute;
-    bottom: calc(100% + 2px);
-    left: 50%;
-    font-size: var(--fs-body);
-    font-weight: var(--fw-bold);
-    white-space: nowrap;
-    color: var(--color-ink);
-    transform: translateX(-50%);
-  }
-
-  .cs__growth-badge {
-    position: absolute;
-    left: 54%;
-    top: 34%;
-    padding: 4px 10px;
-    border-radius: var(--radius-pill);
-    background: var(--color-brand);
-    color: var(--color-on-brand);
-    font-size: var(--fs-small);
-    font-weight: var(--fw-bold);
-    transform: translate(-50%, -50%) rotate(-8deg);
-  }
-
-  /* ---------- ROAS: unit blocks, one per ₹1 ---------- */
-  .cs__units {
-    display: grid;
-    gap: var(--space-3);
-  }
-
-  .cs__unit-row {
-    display: grid;
-    grid-template-columns: 6.5rem 1fr auto;
-    align-items: center;
-    gap: var(--space-3);
-  }
-
-  .cs__unit-label {
-    font-size: 0.75rem;
-    font-weight: var(--fw-bold);
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: var(--color-text-muted);
-  }
-
-  .cs__unit-blocks {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 3px;
-  }
-
-  .cs__unit {
-    display: block;
-    width: 16px;
-    height: 16px;
-    border-radius: 4px;
-  }
-
-  .cs__unit--spend {
-    background: var(--color-ink);
-  }
-
-  .cs__unit--solid {
-    background: var(--color-brand);
-  }
-
-  .cs__unit--range {
-    background: var(--cs-band);
-  }
-
-  .cs__unit-total {
-    font-size: var(--fs-body);
-    font-weight: var(--fw-bold);
-    font-variant-numeric: tabular-nums;
-    white-space: nowrap;
-    color: var(--color-ink);
-  }
-
-  .cs__roas-note {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 4px 6px;
-    margin-top: var(--space-3);
-    font-size: 0.75rem;
-    font-weight: var(--fw-medium);
-    color: var(--color-text-muted);
-  }
-
-  .cs__key {
-    width: 9px;
-    height: 9px;
-    margin-left: 6px;
-    border-radius: 2px;
-  }
-
-  .cs__key:first-child {
-    margin-left: 0;
-  }
-
-  .cs__key--solid {
-    background: var(--color-brand);
-  }
-
-  .cs__key--range {
-    background: var(--cs-band);
-  }
-
-  .cs__key--spend {
-    background: var(--color-ink);
-  }
-
-  @media (min-width: 900px) {
-    .cs__unit {
-      width: 20px;
-      height: 20px;
-    }
-  }
-
-  @media (max-width: 479px) {
-    .cs__unit-row {
-      grid-template-columns: 1fr auto;
-    }
-
-    .cs__unit-label {
-      grid-column: 1 / -1;
-    }
-
-    .cs__unit {
-      width: 14px;
-      height: 14px;
-    }
-  }
-
-  /* ---------- Result bar ---------- */
-  .cs__result {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: var(--space-2) var(--space-4);
-    margin-top: auto;
-    padding: var(--space-4) var(--space-5);
-    border-radius: 12px;
-    background: var(--color-ink);
-    color: var(--color-on-brand);
-  }
-
-  .cs__result-value {
-    font-size: clamp(1.75rem, 1.3rem + 1.6vw, 2.5rem);
-    font-weight: var(--fw-bold);
-    line-height: 1;
-    letter-spacing: -0.02em;
-  }
-
-  .cs__result-label {
-    font-size: var(--fs-small);
-    font-weight: var(--fw-medium);
-    color: rgb(255 255 255 / 0.78);
-  }
-
-  /* ---------- Entrance (replays each time a card enters view) ---------- */
-  .cs.is-enhanced .cs__trend {
-    stroke-dashoffset: 100;
-  }
-
-  .cs.is-enhanced .cs__area,
-  .cs.is-enhanced .cs__pt,
-  .cs.is-enhanced .cs__pt-value,
-  .cs.is-enhanced .cs__growth-badge,
-  .cs.is-enhanced .cs__roas-note,
-  .cs.is-enhanced .cs__unit-total {
+  .cs.is-enhanced .cs__bar-val,
+  .cs.is-enhanced .cs__outcome > *,
+  .cs.is-enhanced .cs__note {
     opacity: 0;
   }
 
-  .cs.is-enhanced .cs__pt {
-    transform: scale(0);
-    transform-box: fill-box;
-    transform-origin: center;
+  .cs.is-enhanced .cs__outcome > * {
+    transform: translate3d(0, 14px, 0);
   }
 
-  .cs.is-enhanced .cs__growth-badge {
-    transform: translate(-50%, -30%) rotate(-8deg) scale(0.6);
+  .cs.is-enhanced .cs__outcome > .cs__phase-link {
+    transform: scaleY(0);
   }
 
-  .cs.is-enhanced .cs__unit {
-    opacity: 0;
-    transform: scale(0.3);
+  .cs__card.is-in .cs__ticks li::before {
+    transform: none;
+    transition: transform 700ms var(--ease-out) calc(var(--k) * 45ms);
   }
 
-  .cs.is-enhanced .cs__result {
-    opacity: 0;
-    transform: translate3d(0, 12px, 0);
+  .cs__card.is-in .cs__bar {
+    transform: none;
+    transition: transform 900ms cubic-bezier(0.2, 0.9, 0.25, 1) calc(350ms + var(--k) * 350ms);
   }
 
-  /* in view */
-  .cs__card.is-in .cs__trend {
-    stroke-dashoffset: 0;
-    transition: stroke-dashoffset 1100ms var(--ease-in-out) 250ms;
-  }
-
-  .cs__card.is-in .cs__area {
+  .cs__card.is-in .cs__bar-val {
     opacity: 1;
-    transition: opacity 700ms var(--ease-out) 900ms;
+    transition: opacity 400ms var(--ease-out) calc(1000ms + var(--k) * 350ms);
   }
 
-  .cs__card.is-in .cs__pt {
+  .cs__card.is-in .cs__outcome > * {
     opacity: 1;
     transform: none;
     transition:
-      transform 450ms cubic-bezier(0.34, 1.6, 0.64, 1),
-      opacity 200ms var(--ease-out);
+      opacity 500ms var(--ease-out) 500ms,
+      transform 500ms var(--ease-out) 500ms;
   }
 
-  .cs__card.is-in .cs__pt--after {
-    transition-delay: 1250ms;
+  .cs__card.is-in .cs__outcome > .cs__phase-link {
+    transition-delay: 800ms;
   }
 
-  .cs__card.is-in .cs__pt-pulse {
-    animation: cs-pulse 2s var(--ease-out) 1.6s infinite;
+  .cs__card.is-in .cs__outcome > .cs__stat--dark {
+    transition-delay: 1050ms;
   }
 
-  .cs__card.is-in .cs__pt-value {
+  .cs__card.is-in .cs__note {
     opacity: 1;
-    transition: opacity 400ms var(--ease-out) 300ms;
-  }
-
-  .cs__card.is-in .cs__pt-hit--after .cs__pt-value {
-    transition-delay: 1350ms;
-  }
-
-  .cs__card.is-in .cs__growth-badge {
-    opacity: 1;
-    transform: translate(-50%, -50%) rotate(-8deg);
-    transition:
-      opacity 300ms var(--ease-out) 1300ms,
-      transform 500ms cubic-bezier(0.34, 1.6, 0.64, 1) 1300ms;
-  }
-
-  /* Unit blocks pop in one after another (--i is the block's order) */
-  .cs__card.is-in .cs__unit {
-    opacity: 1;
-    transform: none;
-    transition:
-      opacity 250ms var(--ease-out),
-      transform 400ms cubic-bezier(0.34, 1.6, 0.64, 1);
-    transition-delay: calc(200ms + var(--i) * 70ms);
-  }
-
-  .cs__card.is-in .cs__unit-total,
-  .cs__card.is-in .cs__roas-note {
-    opacity: 1;
-    transition: opacity 400ms var(--ease-out) 1300ms;
-  }
-
-  .cs__card.is-in .cs__result {
-    opacity: 1;
-    transform: none;
-    transition:
-      opacity 500ms var(--ease-out) 200ms,
-      transform 500ms var(--ease-out) 200ms;
-  }
-
-  @keyframes cs-pulse {
-    0% {
-      opacity: 0.6;
-      transform: scale(1);
-    }
-    70%,
-    100% {
-      opacity: 0;
-      transform: scale(2.6);
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .cs__card.is-in .cs__pt-pulse {
-      animation: none;
-    }
-  }
-
-  @media (max-width: 599px) {
-    .cs__top {
-      flex-wrap: wrap;
-    }
+    transition: opacity 500ms var(--ease-out) 1500ms;
   }
 </style>

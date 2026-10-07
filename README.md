@@ -67,10 +67,11 @@ A centred heading ("We begin with **the problem**, not a service.") and subheadi
 
 ## Case studies
 
-This section sits after How we work. It's a swipeable row of cards: two show on desktop and one on phones, with prev/next buttons and an "n / 3" counter. Each card has the logo and sector, the challenge, what we did, tags, a small chart and a black result bar. Content is in `caseStudies` in `src/data/about.js`.
+This section sits after How we work and follows the printed case-study spreads. It shows one spread per slide (with the next one peeking on phones), prev/next buttons and an "n / 4" counter. Content is in `caseStudies` in `src/data/about.js`; the order is Atulya Karigari, Mommy's Chicken, Jam2gather, HART Cosmetics.
 
-- The charts show only the reported numbers.
-  - A `growth` chart is a before/after line with a shaded area (₹15L to ₹30L). The line draws itself, the area fades in, both points pop, a "+100%" badge lands on the line, and the end point pulses.
-  - A `roas` chart shows "You spend ₹1" as one black block and "You get back" as one red block per ₹1 returned, popping in one after another. A `[min, max]` range adds lighter blocks for the upper end (Jam2gather gets 10 solid and 4 light blocks; HART gets 3).
-- The animations and the result count-up play each time a card scrolls back into view. With reduced motion, the finished chart is shown at rest. Every mark has a direct label and a hover/focus tooltip, and each chart has a hidden data table for screen readers.
-- The client logos in `public/assets/about/clients/` are interim crops from a screenshot, so replace them with the official SVG or PNG files.
+- **Left:** logo and sector, a headline (for example "Built in month one. Scaled in month two."), then the challenge, what we did and the result, joined by red arrows, and the service tags.
+- **Right:** a minimal bar chart in a bordered panel, with a caption, an axis title, labelled gridlines, a grey "before" bar and a red "after" bar, each with its value on top. Next to it is the headline figure (6.67×, 10–14×, up to 3×). Mommy's Chicken instead shows "Month 01 / Build" leading to a black "Month 02 / Growth" card (₹33L / month, 2.2× baseline, +120%). A source note sits underneath.
+- ROAS charts compare ₹1 of spend with what came back. A range (Jam2gather's 10–14) shows as a solid bar plus a lighter band.
+- When a spread comes into view, the gridlines draw, the bars rise one after another, the values land and the headline figure counts up. This replays each time. With reduced motion, the finished chart is shown at rest.
+- Charts use only the reported numbers. Every bar has a hover/focus tooltip, and each chart has a hidden data table for screen readers.
+- The client logos in `public/assets/about/clients/` are interim crops from a screenshot, so replace them with the official SVG or PNG files. Atulya Karigari and HART use a text wordmark until logos arrive (add `logo: { src, width, height }`).

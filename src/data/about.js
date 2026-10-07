@@ -205,40 +205,112 @@ export const howWeWork = {
  * - chart.type 'growth': before → after values (₹ lakh)
  * - chart.type 'roas':   return on ad spend, a single value or a [min, max] range, against 1× break-even
  */
+/**
+ * Case studies, laid out like the printed case-study spreads: a headline, challenge → work → result,
+ * a before/after bar chart (grey before, red after, on a labelled axis) and the headline figure.
+ * Figures come from the case-study brochure and the company profile only.
+ * chart.bars: { label, value, upto? } where `upto` adds a lighter band for the top of a range.
+ * chart.format: how a value is printed ({v} is the number).
+ */
 export const caseStudies = {
   eyebrow: 'Case studies',
   title: 'Challenge, work, result.',
-  intro: 'A snapshot of what changed for three brands when strategy, content and performance worked as one system.',
+  intro: 'A snapshot of what changed for four brands when strategy, content and performance worked as one system.',
   items: [
+    {
+      client: 'Atulya Karigari',
+      logo: null,
+      sector: 'Heritage Craft · Gifting',
+      headline: 'The commercial shift.',
+      challenge: 'Helping shoppers move from craft discovery to confident purchase.',
+      work: 'UX specification, a phased roadmap and individual, corporate and custom gifting flows, with growth work supported by commerce UX and creative.',
+      result: '₹0.6L to ₹4L monthly revenue in 1.4 months.',
+      tags: ['UX specification', 'Gifting flows', 'Growth'],
+      chart: {
+        caption: 'Monthly revenue before and after the engagement',
+        axis: '₹ lakh / month',
+        max: 4.5,
+        step: 0.5,
+        decimals: 1,
+        format: '₹{v}L',
+        bars: [
+          { label: 'Before', value: 0.6 },
+          { label: 'After', value: 4 },
+        ],
+      },
+      stat: { value: '6.67×', label: 'monthly revenue', lines: ['+₹3.4L per month', 'In 1.4 months'] },
+      note: 'Founder-confirmed engagement result. Not an isolated attribution test.',
+    },
     {
       client: "Mommy's Chicken",
       logo: { src: '/assets/about/clients/mommys-chicken.png', width: 128, height: 58 },
       sector: 'Fresh Meat · Food',
+      headline: 'Built in month one. Scaled in month two.',
       challenge: 'Selling across Blinkit, Zomato and Instamart, but with a weak website and no direct online sales.',
       work: 'Fixed the website and built e-commerce, managed quick commerce across platforms, and ran content and ads together.',
+      result: '₹15L to ₹33L monthly revenue by month two.',
       tags: ['E-commerce', 'Quick commerce', 'Content & ads'],
-      chart: { type: 'growth', before: 15, after: 30, unit: '₹', suffix: 'L', beforeLabel: 'Before', afterLabel: 'After' },
-      result: { value: '₹15L → ₹30L', label: 'Revenue, doubled' },
+      chart: {
+        caption: 'Monthly revenue before and after the engagement',
+        axis: 'Monthly revenue / ₹ lakh',
+        max: 35,
+        step: 5,
+        decimals: 0,
+        format: '₹{v}L',
+        bars: [
+          { label: 'Before', value: 15 },
+          { label: 'After', value: 33 },
+        ],
+      },
+      phases: [{ label: 'Month 01 / Build', text: 'Website, commerce journeys and the production foundation.' }],
+      stat: { kicker: 'Month 02 / Growth', value: '₹33L', unit: '/ month', lines: ['2.2× baseline · +120%'] },
+      note: 'Timeline and monthly revenue confirmed by Vistaar.',
     },
     {
       client: 'Jam2gather',
       logo: { src: '/assets/about/clients/jam2gather.png', width: 202, height: 32 },
       sector: 'Live Music · Events',
+      headline: 'Every event, its own campaign.',
       challenge: 'Selling tickets for live jamming events, one city and one date at a time.',
       work: 'Ran Meta ads with copy and creative for every event, rebuilt campaigns around sales, and built a funnel for a new wedding vertical.',
+      result: '10–14X return on ad spend on ticket sales.',
       tags: ['Meta Ads', 'Creative', 'Copy', 'Funnels'],
-      chart: { type: 'roas', range: [10, 14], max: 15, metric: 'ROAS on ticket sales' },
-      result: { value: '10–14X', label: 'ROAS on ticket sales' },
+      chart: {
+        caption: 'Ticket sales returned for every ₹1 of ad spend',
+        axis: '₹ per ₹1 spent',
+        max: 15,
+        step: 5,
+        decimals: 0,
+        format: '₹{v}',
+        bars: [
+          { label: 'Spend', value: 1 },
+          { label: 'Return', value: 10, upto: 14 },
+        ],
+      },
+      stat: { value: '10–14×', label: 'ROAS on ticket sales' },
     },
     {
       client: 'HART Cosmetics',
       logo: null,
       sector: 'Skincare · D2C',
+      headline: 'One journey in a crowded category.',
       challenge: 'Standing out in one of the most crowded beauty categories online, with one consistent journey across social, content, UGC, ads and e-commerce.',
       work: 'Ran social media for the brand and the founder, built a UGC pipeline of about 10 videos a month, and kept performance marketing running with fresh creative angles.',
+      result: 'Up to 3X return on ad spend from performance marketing.',
       tags: ['Social media', 'UGC', 'Performance marketing'],
-      chart: { type: 'roas', value: 3, max: 4, prefix: 'Up to', metric: 'ROAS from performance marketing' },
-      result: { value: 'Up to 3X', label: 'ROAS from performance marketing' },
+      chart: {
+        caption: 'Revenue returned for every ₹1 of ad spend',
+        axis: '₹ per ₹1 spent',
+        max: 4,
+        step: 1,
+        decimals: 0,
+        format: '₹{v}',
+        bars: [
+          { label: 'Spend', value: 1 },
+          { label: 'Return', value: 3, prefix: 'Up to ' },
+        ],
+      },
+      stat: { prefix: 'Up to', value: '3×', label: 'ROAS from performance marketing' },
     },
   ],
 };
