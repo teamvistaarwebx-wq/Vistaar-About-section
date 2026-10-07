@@ -1,31 +1,40 @@
 ---
+/**
+ * Vision & mission. A red vision card overlaps a white, softly shadowed mission card; the mission's
+ * nine questions sit in a two-column list with hairlines.
+ *
+ * Motion (slight): when the section comes into view the mission card eases in from the right, the
+ * vision card rises in over it, the hairlines draw and the questions fade up one after another.
+ * On desktop the vision card drifts a few pixels against the scroll. Hovering a question turns its
+ * hairline red. Reduced motion or no JS: everything is shown at rest.
+ */
 import { visionMission as vm } from '../../data/about.js';
 ---
 
-<section class="section section--surface vm" aria-labelledby="vm-title">
+<section class="section vm" aria-labelledby="vm-title" data-vm>
   <div class="container">
     <header class="section-head">
       <p class="eyebrow" id="vm-title">{vm.eyebrow}</p>
     </header>
 
-    <div class="vm__grid">
-      <div class="vm__vision" data-reveal>
+    <div class="vm__stage">
+      <div class="vm__vision" data-vm-vision>
         <h2 class="vm__label">{vm.visionLabel}</h2>
         <p class="vm__statement">{vm.vision}</p>
         <p class="vm__detail">{vm.visionDetail}</p>
       </div>
 
-      <div class="vm__mission" data-reveal>
-        <h2 class="vm__label">{vm.missionLabel}</h2>
+      <div class="vm__mission">
+        <h2 class="vm__title">{vm.missionLabel}</h2>
         <p class="vm__mission-text">{vm.mission}</p>
         <ol class="vm__questions">
           {
             vm.questions.map((q, i) => (
-              <li>
+              <li style={`--i: ${i}`}>
                 <span class="vm__q-num" aria-hidden="true">
                   {String(i + 1).padStart(2, '0')}
                 </span>
-                <span>{q}</span>
+                <span class="vm__q-text">{q}</span>
               </li>
             ))
           }
@@ -35,90 +44,266 @@ import { visionMission as vm } from '../../data/about.js';
   </div>
 </section>
 
+<script>
+  document.querySelectorAll<HTMLElement>('[data-vm]').forEach((section) => {
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce || !('IntersectionObserver' in window)) return;
+    section.classList.add('is-enhanced');
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((e) => e.isIntersecting)) return;
+        section.classList.add('is-in');
+        io.disconnect();
+      },
+      { rootMargin: '0px 0px -15% 0px', threshold: 0.15 },
+    );
+    io.observe(section);
+
+    // Gentle drift of the vision card against the scroll (desktop only).
+    const vision = section.querySelector<HTMLElement>('[data-vm-vision]')!;
+    const desktop = window.matchMedia('(min-width: 1200px)');
+    let raf = 0;
+    const drift = () => {
+      raf = 0;
+      if (!desktop.matches) return vision.style.setProperty('--vm-drift', '0px');
+      const r = section.getBoundingClientRect();
+      const p = (innerHeight - r.top) / (innerHeight + r.height); // 0 → 1 while on screen
+      const y = (Math.min(1, Math.max(0, p)) - 0.5) * -36;
+      vision.style.setProperty('--vm-drift', `${y.toFixed(1)}px`);
+    };
+    const queue = () => (raf ||= requestAnimationFrame(drift));
+    window.addEventListener('scroll', queue, { passive: true });
+    window.addEventListener('resize', queue);
+    drift();
+  });
+</script>
+
 <style>
-  .vm__grid {
-    display: grid;
-    gap: var(--space-6);
+  .vm {
+    --vm-overlap: 11%; /* how far the vision card reaches over the mission card */
   }
 
+  /* ---------- Stage: two cards sharing one grid cell ---------- */
+  .vm__stage {
+    display: grid;
+  }
+
+  .vm__vision {
+    position: relative;
+    z-index: 1;
+    width: calc(100% - var(--space-4));
+    padding: clamp(var(--space-5), 3.2vw, 48px);
+    border-radius: var(--radius-card);
+    background: var(--color-brand);
+    color: var(--color-on-brand);
+    box-shadow: 0 18px 40px -18px rgb(var(--color-brand-rgb) / 0.55);
+  }
+
+  .vm__mission {
+    margin: calc(var(--space-6) * -1) 0 0 var(--space-4);
+    padding: calc(var(--space-6) + var(--space-5)) clamp(var(--space-5), 3.2vw, 48px) clamp(var(--space-5), 3.2vw, 48px);
+    border-radius: var(--radius-card);
+    background: var(--color-bg);
+    box-shadow: var(--shadow-float);
+  }
+
+  @media (min-width: 1200px) {
+    .vm__vision,
+    .vm__mission {
+      grid-area: 1 / 1;
+    }
+
+    .vm__vision {
+      align-self: center;
+      width: 46%;
+      translate: 0 var(--vm-drift, 0px);
+    }
+
+    .vm__mission {
+      margin: 0 0 0 35%;
+      padding: clamp(48px, 4vw, 64px) clamp(28px, 3vw, 64px) clamp(48px, 5vw, 80px)
+        calc(var(--vm-overlap) + clamp(32px, 3.6vw, 68px));
+    }
+  }
+
+  /* ---------- Vision ---------- */
   .vm__label {
-    margin-bottom: var(--space-4);
-    font-size: var(--fs-eyebrow);
+    font-size: var(--fs-body);
     font-weight: var(--fw-bold);
-    letter-spacing: var(--tracking-eyebrow);
+    letter-spacing: 0.02em;
     text-transform: uppercase;
-    color: var(--color-brand);
   }
 
   .vm__statement {
-    font-size: clamp(1.625rem, 1.2rem + 1.8vw, 2.75rem);
+    margin-top: clamp(var(--space-6), 4vw, 64px);
+    font-size: clamp(1.5rem, 1.1rem + 1.3vw, 2.25rem);
     font-weight: var(--fw-semibold);
-    line-height: 1.15;
+    line-height: 1.18;
     letter-spacing: -0.02em;
     text-wrap: balance;
   }
 
   .vm__detail {
     max-width: 36rem;
-    margin-top: var(--space-5);
+    margin-top: var(--space-6);
     font-size: var(--fs-lead);
     font-weight: var(--fw-medium);
-    color: var(--color-text);
+    line-height: 1.4;
+    color: rgb(255 255 255 / 0.92);
   }
 
-  .vm__mission {
-    padding: clamp(var(--space-5), 4vw, var(--space-7));
-    border-radius: var(--radius-card);
-    background: var(--color-bg);
+  /* ---------- Mission ---------- */
+  .vm__title {
+    font-size: clamp(1.75rem, 1.3rem + 1.4vw, 2.5rem);
+    font-weight: var(--fw-bold);
+    line-height: 1;
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+    color: var(--color-brand);
   }
 
   .vm__mission-text {
+    max-width: 46rem;
+    margin-top: var(--space-4);
     font-size: var(--fs-lead);
-    font-weight: var(--fw-semibold);
+    font-weight: var(--fw-medium);
     line-height: 1.35;
+    color: var(--color-ink);
   }
 
   .vm__questions {
+    position: relative;
     display: grid;
-    gap: 0;
     margin-top: var(--space-5);
+    padding-top: var(--space-1);
+  }
+
+  /* hairline above the list */
+  .vm__questions::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    border-top: 1px solid var(--color-line);
+    transform-origin: left;
   }
 
   .vm__questions li {
+    position: relative;
     display: flex;
     align-items: baseline;
-    gap: var(--space-4);
-    padding-block: var(--space-3);
+    gap: var(--space-3);
+    padding-block: var(--space-4);
+  }
+
+  /* hairline under each question */
+  .vm__questions li::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 0;
     border-top: 1px solid var(--color-line);
-    font-weight: var(--fw-medium);
-    color: var(--color-text);
+    transform-origin: left;
+    transition: border-color var(--dur-fast) var(--ease-out);
+  }
+
+  .vm__questions li:hover::after {
+    border-top-color: var(--color-brand);
   }
 
   .vm__q-num {
     flex: none;
     min-width: 2ch;
-    font-size: var(--fs-small);
+    font-size: var(--fs-body);
     font-weight: var(--fw-bold);
+    font-variant-numeric: tabular-nums;
     color: var(--color-brand);
+  }
+
+  .vm__q-text {
+    font-weight: var(--fw-medium);
+    color: var(--color-ink);
+    text-transform: capitalize; /* Title Case, as in the design */
+    transition: transform var(--dur-fast) var(--ease-out);
+  }
+
+  .vm__questions li:hover .vm__q-text {
+    transform: translateX(4px);
   }
 
   @media (min-width: 768px) {
     .vm__questions {
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      column-gap: var(--space-6);
+      column-gap: clamp(var(--space-5), 4vw, 56px);
     }
   }
 
-  @media (min-width: 1024px) {
-    .vm__grid {
-      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-      gap: clamp(var(--space-7), 6vw, 120px);
-      align-items: start;
+  @media (min-width: 1200px) {
+    .vm__questions {
+      column-gap: clamp(24px, 2.6vw, 56px);
     }
 
-    .vm__vision {
-      position: sticky;
-      top: var(--space-7);
+    .vm__q-text {
+      font-size: clamp(0.875rem, 0.6rem + 0.42vw, 1.0625rem);
     }
+  }
+
+  /* ---------- Entrance (slight) ---------- */
+  .vm.is-enhanced .vm__mission {
+    opacity: 0;
+    transform: translate3d(32px, 0, 0);
+  }
+
+  .vm.is-enhanced .vm__vision {
+    opacity: 0;
+    transform: translate3d(0, 40px, 0);
+  }
+
+  .vm.is-enhanced .vm__questions::before,
+  .vm.is-enhanced .vm__questions li::after {
+    transform: scaleX(0);
+  }
+
+  .vm.is-enhanced .vm__q-num,
+  .vm.is-enhanced .vm__q-text {
+    opacity: 0;
+    translate: 0 8px;
+  }
+
+  .vm.is-in .vm__mission {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 700ms var(--ease-out),
+      transform 900ms var(--ease-out);
+  }
+
+  .vm.is-in .vm__vision {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 700ms var(--ease-out) 200ms,
+      transform 900ms var(--ease-out) 200ms;
+  }
+
+  .vm.is-in .vm__questions::before {
+    transform: none;
+    transition: transform 800ms var(--ease-out) 450ms;
+  }
+
+  .vm.is-in .vm__questions li::after {
+    transform: none;
+    transition:
+      transform 700ms var(--ease-out) calc(550ms + var(--i) * 70ms),
+      border-color var(--dur-fast) var(--ease-out);
+  }
+
+  .vm.is-in .vm__q-num,
+  .vm.is-in .vm__q-text {
+    opacity: 1;
+    translate: 0 0;
+    transition:
+      opacity 500ms var(--ease-out) calc(600ms + var(--i) * 70ms),
+      translate 500ms var(--ease-out) calc(600ms + var(--i) * 70ms),
+      transform var(--dur-fast) var(--ease-out);
   }
 </style>

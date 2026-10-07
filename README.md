@@ -65,6 +65,14 @@ A centred heading ("We begin with **the problem**, not a service.") and subheadi
 - **Phones:** the step names don't fit around the ring, so only the numbers sit there and the caption names each step.
 - **Reduced motion or no JS:** the finished diagram is shown at rest.
 
+## Vision & mission
+
+A red Vision card overlaps a white, softly shadowed Mission card. The mission's nine questions sit in a two-column list with hairlines and Title Case labels.
+
+- **≥1200px:** the cards share one row, and the red card overlaps the left edge of the mission card. As you scroll, the red card drifts a few pixels.
+- **Below 1200px:** the red card sits on top, and the mission card tucks underneath it. The list is two columns from 768px and one column on phones.
+- **Motion (slight):** on entry, the mission card eases in from the right, the vision card rises over it, the hairlines draw and the questions fade up in turn. Hovering a question turns its hairline red. With reduced motion or no JS, everything is shown at rest.
+
 ## Case studies
 
 This section sits after How we work and follows the printed case-study spreads. It shows one spread per slide (with the next one peeking on phones), prev/next buttons and an "n / 4" counter. Content is in `caseStudies` in `src/data/about.js`; the order is Atulya Karigari, Mommy's Chicken, Jam2gather, HART Cosmetics.
