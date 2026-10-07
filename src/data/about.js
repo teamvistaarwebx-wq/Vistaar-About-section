@@ -77,7 +77,7 @@ export const founder = {
   // Cut-out portrait (transparent background), 1000×1319
   photo: '/assets/about/sanskaar-singh.webp',
   photoWidth: 1000,
-  photoHeight: 1319,
+  photoHeight: 1241,
   story: [
     'Sanskaar founded Vistaar in Bhopal in 2019 as a founder-led digital practice. Businesses needed websites, design and communication. More than that, they needed someone who understood the business behind the requirement. That became the foundation of Vistaar.',
     'Today he leads strategy, creative direction, research-led problem solving, key client engagements and the build-out of new capabilities.',
