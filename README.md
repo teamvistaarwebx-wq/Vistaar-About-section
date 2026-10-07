@@ -20,7 +20,7 @@ npm run build    # static output in dist/
 | Scroll reveal + count-up | `src/scripts/reveal.js` |
 | Team photos (`name.webp` + playful `name-alt.webp` shown on hover; shown black-and-white) | `public/assets/about/team/` |
 
-To add a missing portrait, drop a 480×528 WebP into `public/assets/about/team/` and set `photo` (and optionally `photoAlt`) for that person in `src/data/about.js`. For the founder section, set `founder.photo`.
+To add a missing portrait, drop a 480×528 WebP into `public/assets/about/team/` and set `photo` (and optionally `photoAlt`) for that person in `src/data/about.js`. The founder portrait is `public/assets/about/sanskaar-singh.webp` (a transparent cut-out).
 
 ## Timeline modes
 
@@ -48,3 +48,11 @@ This section is a port of the Framer `ImpactRow` code component, rebuilt in plai
 ## Six disciplines (Who we are)
 
 Left: the eyebrow, title, intro paragraph and a "Start a project" button. Right: a large hairline list ("1  Brand"). Hovering a row with the mouse, tabbing to it or tapping it on a phone opens it: a soft panel fades in behind the row, the name darkens and nudges right, the number turns red, and its capabilities unfold as red-dot tags. Moving the mouse off the list closes it. Each row is a disclosure button (`aria-expanded`), and the arrow keys and Escape work.
+
+## Founder & origin
+
+A cut-out black-and-white portrait whose bottom edge dissolves into the page through a progressive blur (three bands of increasing `backdrop-filter` blur, then a fade). Next to it are the name with a red full stop, the role, the story and the red quote. A slow marquee of the markets Vistaar serves runs underneath.
+
+- **≥1024px, motion allowed:** the section pins briefly. The portrait comes into focus (blurred and zoomed, then sharp), the name rises word by word, the story's words darken in sequence as you scroll, the quote line draws down while the quote turns red word by word, and the label lands last.
+- **Phones and tablets:** no pinning. Each block plays as it scrolls through the viewport.
+- **Reduced motion or no JS:** everything is shown at rest, and the marquee becomes a wrapped list.

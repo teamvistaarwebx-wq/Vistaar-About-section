@@ -1,189 +1,593 @@
 ---
+/**
+ * Founder & origin: Sanskaar Singh.
+ *
+ * Layout (design mockup): cut-out black-and-white portrait on the left whose lower edge dissolves
+ * into the page through a progressive blur; name with a red full stop, role, story, red quote with
+ * a red rule, and "The idea behind Vistaar" on the right. A slow marquee of the markets Vistaar
+ * stays close to runs underneath.
+ *
+ * Scroll story:
+ * - Desktop (≥ 1024px, motion allowed): the section pins briefly. The portrait comes into focus
+ *   (blur → sharp) as the section arrives, the name rises word by word, the story paragraphs
+ *   "read themselves" (words darken in sequence), the quote rule draws down while the quote turns
+ *   red word by word, and the label lands last.
+ * - Phones / tablets: no pinning; each block plays its part as it scrolls through the viewport.
+ * - Reduced motion or no JS: everything is shown at rest.
+ */
 import { founder } from '../../data/about.js';
-import PersonPlaceholder from './PersonPlaceholder.astro';
+
+const words = (text: string) => text.split(/\s+/).filter(Boolean);
+const [firstName, ...restName] = founder.name.split(' ');
+const nameWords = [firstName, restName.join(' ')].filter(Boolean);
 ---
 
-<section class="section founder" aria-labelledby="founder-title">
-  <div class="container founder__grid">
-    <figure class="founder__media" data-reveal>
-      {
-        founder.photo ? (
-          <img
-            src={founder.photo}
-            alt={`${founder.name}, ${founder.role} of Vistaar WebX`}
-            width="480"
-            height="528"
-            loading="lazy"
-            decoding="async"
-          />
-        ) : (
-          <PersonPlaceholder name={founder.name} />
-        )
-      }
-      <figcaption class="founder__caption">
-        <span class="founder__name">{founder.name}</span>
-        <span class="founder__role">{founder.role}</span>
-      </figcaption>
-    </figure>
+<section class="fo" aria-labelledby="founder-title" data-founder>
+  <div class="fo__stage" data-fo-stage>
+    <div class="fo__pin">
+      <div class="container fo__grid">
+        <figure class="fo__media" data-fo-portrait>
+          <span class="fo__glow" aria-hidden="true"></span>
+          {
+            founder.photo && (
+              <img
+                class="fo__photo"
+                src={founder.photo}
+                alt={`${founder.name}, ${founder.role} of Vistaar WebX`}
+                width={founder.photoWidth}
+                height={founder.photoHeight}
+                loading="lazy"
+                decoding="async"
+              />
+            )
+          }
+          <!-- Progressive blur: three bands of increasing blur, then a fade into the page -->
+          <span class="fo__blur fo__blur--1" aria-hidden="true"></span>
+          <span class="fo__blur fo__blur--2" aria-hidden="true"></span>
+          <span class="fo__blur fo__blur--3" aria-hidden="true"></span>
+          <span class="fo__fade" aria-hidden="true"></span>
+        </figure>
 
-    <div class="founder__body">
-      <p class="eyebrow">{founder.eyebrow}</p>
-      <h2 class="section-title" id="founder-title" data-reveal>
-        {founder.name}, <span class="accent">{founder.role}</span>
-      </h2>
-      <div class="founder__story" data-reveal>
-        {founder.story.map((para) => <p>{para}</p>)}
+        <div class="fo__body">
+          <p class="eyebrow">{founder.eyebrow}</p>
+
+          <h2 class="fo__name" id="founder-title">
+            {
+              nameWords.map((w, i) => (
+                <span class="fo__name-mask">
+                  <span class="fo__name-word" data-fo-name style={`--j: ${i}`}>
+                    {w}
+                    {i === nameWords.length - 1 && <span class="fo__name-dot" aria-hidden="true">.</span>}
+                  </span>
+                </span>
+              ))
+            }
+          </h2>
+          <p class="fo__role" data-fo-role>{founder.role}</p>
+
+          <div class="fo__story" data-fo-story>
+            {
+              founder.story.map((para) => (
+                <p>
+                  {words(para).map((w) => (
+                    <span class="fo__word">{w} </span>
+                  ))}
+                </p>
+              ))
+            }
+          </div>
+
+          <figure class="fo__quote" data-fo-quote>
+            <span class="fo__qline" aria-hidden="true" data-fo-qline></span>
+            <span class="fo__qmark" aria-hidden="true">“</span>
+            <blockquote>
+              <p>
+                {words(founder.quote).map((w) => (
+                  <span class="fo__qword">{w} </span>
+                ))}
+              </p>
+            </blockquote>
+            <figcaption class="fo__label" data-fo-label>{founder.quoteLabel}</figcaption>
+          </figure>
+        </div>
       </div>
-
-      <figure class="founder__quote" data-reveal>
-        <blockquote>
-          <p>{founder.quote}</p>
-        </blockquote>
-        <figcaption>{founder.quoteLabel}</figcaption>
-      </figure>
     </div>
+  </div>
 
-    <div class="founder__base" data-reveal>
-      <h3 class="founder__base-title">{founder.base.title}</h3>
-      <p class="founder__base-text">{founder.base.text}</p>
-      <ul class="founder__markets" aria-label="Markets we stay close to">
-        {founder.base.markets.map((m) => <li class="chip">{m}</li>)}
+  <div class="fo__base">
+    <div class="container fo__base-head">
+      <h3 class="fo__base-title">{founder.base.title}</h3>
+      <p class="fo__base-text">{founder.base.text}</p>
+    </div>
+    <div class="fo__marquee">
+      <ul class="fo__track" aria-label="Markets we stay close to">
+        {founder.base.markets.map((m) => <li>{m}</li>)}
+      </ul>
+      <ul class="fo__track fo__track--dup" aria-hidden="true">
+        {founder.base.markets.map((m) => <li>{m}</li>)}
       </ul>
     </div>
   </div>
 </section>
 
+<script>
+  const desktop = window.matchMedia('(min-width: 1024px)');
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  const clamp = (v: number, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+  const seg = (p: number, a: number, b: number) => clamp((p - a) / (b - a));
+  const ease = (t: number) => 1 - Math.pow(1 - t, 3);
+
+  document.querySelectorAll<HTMLElement>('[data-founder]').forEach((section) => {
+    const stage = section.querySelector<HTMLElement>('[data-fo-stage]')!;
+    const portrait = section.querySelector<HTMLElement>('[data-fo-portrait]')!;
+    const nameWords = [...section.querySelectorAll<HTMLElement>('[data-fo-name]')];
+    const role = section.querySelector<HTMLElement>('[data-fo-role]')!;
+    const story = section.querySelector<HTMLElement>('[data-fo-story]')!;
+    const storyWords = [...story.querySelectorAll<HTMLElement>('.fo__word')];
+    const quote = section.querySelector<HTMLElement>('[data-fo-quote]')!;
+    const qline = section.querySelector<HTMLElement>('[data-fo-qline]')!;
+    const quoteWords = [...quote.querySelectorAll<HTMLElement>('.fo__qword')];
+    const label = section.querySelector<HTMLElement>('[data-fo-label]')!;
+
+    let pinned = false;
+    let queued = false;
+
+    /** 0 when an element's top sits at 90% of the viewport, 1 when it reaches 40%. */
+    function viewP(el: HTMLElement, from = 0.9, to = 0.4) {
+      const top = el.getBoundingClientRect().top;
+      const vh = window.innerHeight;
+      return clamp((vh * from - top) / (vh * (from - to)));
+    }
+
+    function light(list: HTMLElement[], t: number, cls: string) {
+      const lit = Math.round(t * list.length);
+      list.forEach((w, i) => w.classList.toggle(cls, i < lit));
+    }
+
+    function render(portraitT: number, nameT: number, roleT: number, storyT: number, quoteT: number, labelT: number, drift: number) {
+      const pt = ease(portraitT);
+      portrait.style.setProperty('--pt', pt.toFixed(3));
+      portrait.style.setProperty('--drift', `${drift.toFixed(1)}px`);
+
+      nameWords.forEach((w, j) => {
+        const t = ease(seg(nameT, j * 0.25, j * 0.25 + 0.75));
+        w.style.transform = `translate3d(0, ${((1 - t) * 105).toFixed(1)}%, 0)`;
+      });
+
+      const rt = ease(roleT);
+      role.style.opacity = rt.toFixed(3);
+      role.style.transform = `translate3d(0, ${((1 - rt) * 12).toFixed(1)}px, 0)`;
+
+      light(storyWords, storyT, 'is-lit');
+      qline.style.transform = `scaleY(${ease(quoteT).toFixed(3)})`;
+      light(quoteWords, quoteT, 'is-lit');
+
+      const lt = ease(labelT);
+      label.style.opacity = lt.toFixed(3);
+      label.style.transform = `translate3d(${((1 - lt) * -16).toFixed(1)}px, 0, 0)`;
+    }
+
+    function update() {
+      queued = false;
+      const vh = window.innerHeight;
+      if (pinned) {
+        const rect = stage.getBoundingClientRect();
+        const total = stage.offsetHeight - vh;
+        const enter = clamp((vh - rect.top) / vh); // 0 → 1 while the section arrives
+        const p = total > 0 ? clamp(-rect.top / total) : 1; // 0 → 1 while pinned
+        render(
+          seg(enter, 0.15, 1),
+          seg(enter, 0.55, 1),
+          seg(enter, 0.75, 1),
+          seg(p, 0.02, 0.58),
+          seg(p, 0.55, 0.86),
+          seg(p, 0.84, 0.96),
+          -p * 28,
+        );
+      } else {
+        render(
+          viewP(portrait, 1, 0.45),
+          viewP(nameWords[0] ?? role, 0.95, 0.6),
+          viewP(role, 0.95, 0.65),
+          clamp((vh * 0.85 - story.getBoundingClientRect().top) / (story.offsetHeight + vh * 0.25)),
+          viewP(quote, 0.9, 0.45),
+          viewP(label, 0.95, 0.7),
+          0,
+        );
+      }
+    }
+
+    function onScroll() {
+      if (!queued) {
+        queued = true;
+        requestAnimationFrame(update);
+      }
+    }
+
+    let listening = false;
+    function setListening(on: boolean) {
+      if (on === listening) return;
+      listening = on;
+      if (on) window.addEventListener('scroll', onScroll, { passive: true });
+      else window.removeEventListener('scroll', onScroll);
+    }
+
+    const io = new IntersectionObserver(([e]) => {
+      setListening(e.isIntersecting);
+      onScroll();
+    }, { rootMargin: '25% 0px' });
+
+    function applyMode() {
+      const enhanced = !reduce.matches;
+      section.classList.toggle('is-enhanced', enhanced);
+      pinned = enhanced && desktop.matches;
+      section.classList.toggle('is-pinned', pinned);
+      if (!enhanced) {
+        // Static: clear any inline motion state.
+        io.disconnect();
+        setListening(false);
+        [portrait, role, label, qline, ...nameWords].forEach((el) => el.removeAttribute('style'));
+        [...storyWords, ...quoteWords].forEach((w) => w.classList.add('is-lit'));
+        return;
+      }
+      io.observe(section);
+      update();
+    }
+
+    desktop.addEventListener('change', applyMode);
+    reduce.addEventListener('change', applyMode);
+    window.addEventListener('resize', onScroll, { passive: true });
+    applyMode();
+  });
+</script>
+
 <style>
-  .founder__grid {
-    display: grid;
-    gap: var(--space-7);
-  }
-
-  .founder__media {
+  .fo {
     position: relative;
-    align-self: start;
-    overflow: hidden;
-    max-width: 440px;
-    border-radius: var(--radius-card);
-    background: var(--color-surface);
+    padding-top: var(--space-section);
   }
 
-  .founder__media img {
+  /* ---------- Layout ---------- */
+  .fo__grid {
+    display: grid;
+    gap: var(--space-6);
+    align-items: center;
+  }
+
+  @media (min-width: 1024px) {
+    .fo__grid {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+      gap: clamp(var(--space-7), 6vw, 120px);
+    }
+  }
+
+  /* Pinned: the stage is taller than the viewport; the inner layer sticks while the story plays */
+  .fo.is-pinned .fo__stage {
+    height: 230vh;
+  }
+
+  .fo.is-pinned .fo__pin {
+    position: sticky;
+    top: 0;
+    display: flex;
+    align-items: center;
+    height: 100vh;
+    height: 100svh;
+  }
+
+  .fo.is-pinned {
+    padding-top: 0;
+  }
+
+  /* ---------- Portrait ---------- */
+  .fo__media {
+    --pt: 1;
+    --drift: 0px;
+    position: relative;
+    justify-self: center;
+    width: min(100%, 520px);
+    margin: 0;
+  }
+
+  .fo.is-pinned .fo__media {
+    width: min(100%, calc((100svh - 64px) * 1000 / 1319), 560px);
+  }
+
+  .fo__photo {
+    position: relative;
+    z-index: 1;
     width: 100%;
-    aspect-ratio: 10 / 11;
-    object-fit: cover;
+    height: auto;
   }
 
-  .founder__caption {
-    display: grid;
-    gap: 2px;
-    padding: var(--space-4) var(--space-5);
-    background: var(--color-brand);
-    color: var(--color-on-brand);
+  /* Soft red glow behind the head: the "blur" note in the brand colour */
+  .fo__glow {
+    position: absolute;
+    left: 50%;
+    top: 18%;
+    z-index: 0;
+    width: 80%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgb(var(--color-brand-rgb) / 0.16), transparent 65%);
+    filter: blur(24px);
+    transform: translate3d(-50%, 0, 0) scale(calc(0.7 + var(--pt) * 0.3));
+    opacity: var(--pt);
+    pointer-events: none;
   }
 
-  .founder__name {
-    font-size: var(--fs-card-title);
-    font-weight: var(--fw-bold);
+  /* Progressive blur at the bottom edge: each band blurs more and starts lower */
+  .fo__blur,
+  .fo__fade {
+    position: absolute;
+    left: -2%;
+    right: -2%;
+    bottom: -1px;
+    z-index: 2;
+    height: 34%;
+    pointer-events: none;
   }
 
-  .founder__role {
-    font-size: var(--fs-small);
-    font-weight: var(--fw-medium);
+  .fo__blur--1 {
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    /* vertical band × feathered sides, so the blur has no hard edges */
+    mask-image: linear-gradient(to bottom, transparent 0%, #000 30%), linear-gradient(to right, transparent 0%, #000 14%, #000 86%, transparent 100%);
+    mask-composite: intersect;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 30%), linear-gradient(to right, transparent 0%, #000 14%, #000 86%, transparent 100%);
+    -webkit-mask-composite: source-in;
   }
 
-  .founder__body {
-    display: grid;
-    gap: var(--space-5);
-    align-content: start;
+  .fo__blur--2 {
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    /* vertical band × feathered sides, so the blur has no hard edges */
+    mask-image: linear-gradient(to bottom, transparent 25%, #000 60%), linear-gradient(to right, transparent 0%, #000 14%, #000 86%, transparent 100%);
+    mask-composite: intersect;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 25%, #000 60%), linear-gradient(to right, transparent 0%, #000 14%, #000 86%, transparent 100%);
+    -webkit-mask-composite: source-in;
   }
 
-  .founder__story {
+  .fo__blur--3 {
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    /* vertical band × feathered sides, so the blur has no hard edges */
+    mask-image: linear-gradient(to bottom, transparent 50%, #000 85%), linear-gradient(to right, transparent 0%, #000 14%, #000 86%, transparent 100%);
+    mask-composite: intersect;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 50%, #000 85%), linear-gradient(to right, transparent 0%, #000 14%, #000 86%, transparent 100%);
+    -webkit-mask-composite: source-in;
+  }
+
+  .fo__fade {
+    background: linear-gradient(to bottom, transparent 15%, color-mix(in srgb, var(--color-bg) 70%, transparent) 60%, var(--color-bg) 92%);
+  }
+
+  /* Scroll-driven focus: blur → sharp, slight zoom out, rise */
+  .fo.is-enhanced .fo__photo {
+    opacity: calc(0.15 + var(--pt) * 0.85);
+    transform: translate3d(0, calc((1 - var(--pt)) * 40px + var(--drift)), 0) scale(calc(1.06 - var(--pt) * 0.06));
+    transform-origin: 50% 30%;
+    will-change: transform, filter;
+  }
+
+  @media (min-width: 768px) {
+    .fo.is-enhanced .fo__photo {
+      filter: blur(calc((1 - var(--pt)) * 14px));
+    }
+  }
+
+  /* ---------- Text ---------- */
+  .fo__body {
     display: grid;
     gap: var(--space-4);
     max-width: 40rem;
-    font-size: var(--fs-lead);
+  }
+
+  .fo__name {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 0.25em;
+    font-size: clamp(2.5rem, 1.6rem + 3.6vw, 4.5rem);
+    font-weight: var(--fw-semibold);
+    line-height: 1;
+    letter-spacing: -0.035em;
+    color: var(--color-ink);
+  }
+
+  .fo__name-mask {
+    display: inline-block;
+    overflow: hidden;
+    padding-bottom: 0.08em;
+  }
+
+  .fo__name-word {
+    display: inline-block;
+    will-change: transform;
+  }
+
+  .fo__name-dot {
+    color: var(--color-brand);
+  }
+
+  .fo__role {
+    margin-top: calc(var(--space-2) * -1);
+    font-size: clamp(1rem, 0.9rem + 0.5vw, 1.375rem);
     font-weight: var(--fw-medium);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-brand);
+  }
+
+  .fo__story {
+    display: grid;
+    gap: var(--space-4);
+    margin-top: var(--space-3);
+    font-size: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+    line-height: 1.6;
     color: var(--color-text);
   }
 
-  .founder__quote {
-    position: relative;
-    max-width: 44rem;
-    margin-top: var(--space-4);
-    padding: var(--space-6) var(--space-6) var(--space-5);
-    border-radius: var(--radius-lg);
-    background: var(--color-brand);
-    color: var(--color-on-brand);
+  /* Words start faint and darken as the story is "read" */
+  .fo.is-enhanced .fo__word {
+    opacity: 0.18;
+    transition: opacity 300ms var(--ease-out);
   }
 
-  .founder__quote::before {
-    content: '“';
+  .fo.is-enhanced .fo__word.is-lit {
+    opacity: 1;
+  }
+
+  /* Quote: red rule draws down, words turn red */
+  .fo__quote {
+    position: relative;
+    display: grid;
+    gap: var(--space-5);
+    margin: var(--space-5) 0 0;
+    padding-left: clamp(var(--space-6), 3vw, 44px);
+  }
+
+  .fo__qline {
     position: absolute;
-    top: -0.2em;
-    left: var(--space-5);
-    font-size: 6rem;
+    left: 6px;
+    top: 0.9em;
+    bottom: 3.6rem;
+    width: 2px;
+    border-radius: 2px;
+    background: rgb(var(--color-brand-rgb) / 0.45);
+    transform-origin: top;
+  }
+
+  .fo__qmark {
+    position: absolute;
+    left: -2px;
+    top: -0.32em;
+    font-size: 3rem;
     font-weight: var(--fw-bold);
     line-height: 1;
-    opacity: 0.35;
+    color: rgb(var(--color-brand-rgb) / 0.45);
   }
 
-  .founder__quote blockquote {
+  .fo__quote blockquote {
     margin: 0;
     font-size: clamp(1.25rem, 1rem + 1vw, 1.75rem);
-    font-weight: var(--fw-semibold);
-    line-height: 1.3;
-    text-wrap: balance;
+    font-weight: var(--fw-medium);
+    line-height: 1.35;
+    letter-spacing: -0.01em;
+    color: var(--color-brand);
+    text-wrap: pretty;
   }
 
-  .founder__quote figcaption {
-    margin-top: var(--space-4);
-    font-size: var(--fs-small);
+  .fo.is-enhanced .fo__qword {
+    color: rgb(var(--color-brand-rgb) / 0.22);
+    transition: color 350ms var(--ease-out);
+  }
+
+  .fo.is-enhanced .fo__qword.is-lit {
+    color: var(--color-brand);
+  }
+
+  .fo__label {
+    margin-left: calc(clamp(var(--space-6), 3vw, 44px) * -1);
+    font-size: var(--fs-body);
     font-weight: var(--fw-bold);
-    letter-spacing: var(--tracking-eyebrow);
+    letter-spacing: 0.04em;
     text-transform: uppercase;
+    color: var(--color-brand);
   }
 
-  .founder__base {
+  /* ---------- Base: Bhopal + markets marquee ---------- */
+  .fo__base {
     display: grid;
-    gap: var(--space-3);
-    padding: clamp(var(--space-5), 4vw, var(--space-7));
-    border-radius: var(--radius-card);
-    background: var(--color-surface);
+    gap: var(--space-5);
+    padding-block: clamp(var(--space-7), 6vw, var(--space-8)) var(--space-section);
   }
 
-  .founder__base-title {
+  .fo__base-head {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  @media (min-width: 900px) {
+    .fo__base-head {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      align-items: end;
+      gap: var(--space-7);
+    }
+  }
+
+  .fo__base-title {
     font-size: var(--fs-h3);
     font-weight: var(--fw-semibold);
   }
 
-  .founder__base-text {
-    max-width: 40rem;
+  .fo__base-text {
+    max-width: 36rem;
     font-weight: var(--fw-medium);
-    color: var(--color-text);
+    color: var(--color-text-muted);
   }
 
-  .founder__markets {
+  .fo__marquee {
     display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-    margin-top: var(--space-3);
+    overflow: hidden;
+    border-block: 1px solid var(--color-line);
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+    mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
   }
 
-  @media (min-width: 768px) {
-    .founder__grid {
-      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-      column-gap: var(--space-7);
-    }
+  .fo__track {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: var(--space-6);
+    padding: var(--space-4) var(--space-6) var(--space-4) 0;
+    font-size: clamp(1rem, 0.9rem + 0.6vw, 1.5rem);
+    font-weight: var(--fw-medium);
+    white-space: nowrap;
+    color: var(--color-ink);
+    animation: fo-marquee 45s linear infinite;
+  }
 
-    .founder__base {
-      grid-column: 1 / -1;
+  .fo__track li {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-6);
+  }
+
+  .fo__track li::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-brand);
+  }
+
+  .fo__marquee:hover .fo__track {
+    animation-play-state: paused;
+  }
+
+  @keyframes fo-marquee {
+    to {
+      transform: translate3d(-100%, 0, 0);
     }
   }
 
-  @media (min-width: 1024px) {
-    .founder__grid {
-      column-gap: clamp(var(--space-7), 6vw, 120px);
+  @media (prefers-reduced-motion: reduce) {
+    .fo__marquee {
+      -webkit-mask-image: none;
+      mask-image: none;
+    }
+
+    .fo__track {
+      flex-wrap: wrap;
+      white-space: normal;
+      padding-inline: var(--gutter);
+      row-gap: var(--space-2);
+      animation: none;
+    }
+
+    .fo__track--dup {
+      display: none;
     }
   }
 </style>

@@ -74,8 +74,10 @@ export const founder = {
   eyebrow: 'Founder & origin',
   name: 'Sanskaar Singh',
   role: 'Founder & CEO',
-  // Set to a file in /public/assets/about/ once a portrait exists, e.g. '/assets/about/sanskaar-singh.webp'
-  photo: null,
+  // Cut-out portrait (transparent background), 1000×1319
+  photo: '/assets/about/sanskaar-singh.webp',
+  photoWidth: 1000,
+  photoHeight: 1319,
   story: [
     'Sanskaar founded Vistaar in Bhopal in 2019 as a founder-led digital practice. Businesses needed websites, design and communication. More than that, they needed someone who understood the business behind the requirement. That became the foundation of Vistaar.',
     'Today he leads strategy, creative direction, research-led problem solving, key client engagements and the build-out of new capabilities.',
@@ -288,7 +290,7 @@ export const team = {
   title: 'Under one roof in Bhopal.',
   intro: 'Strategy, design, technology, content and operations, led by founder Sanskaar Singh.',
   members: [
-    { name: 'Sanskaar Singh', role: 'Founder & CEO', photo: null, photoAlt: null },
+    { name: 'Sanskaar Singh', role: 'Founder & CEO', photo: teamPhoto('sanskaar-singh'), photoAlt: null },
     { name: 'Akshat Jain', role: 'Chief of Staff', photo: teamPhoto('akshat-jain'), photoAlt: teamPhotoAlt('akshat-jain') },
     { name: 'Aditi Singh Chouhan', role: 'HR Manager', photo: teamPhoto('aditi-singh-chouhan'), photoAlt: teamPhotoAlt('aditi-singh-chouhan') },
     { name: 'Shubham Shrivastava', role: 'Production Lead', photo: teamPhoto('shubham-shrivastava'), photoAlt: teamPhotoAlt('shubham-shrivastava') },
