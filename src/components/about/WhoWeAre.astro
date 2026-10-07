@@ -1,109 +1,95 @@
 ---
 /**
- * Who we are + six disciplines (minimal).
+ * Who we are + six disciplines.
  *
- * Left: a flat visual that changes with the open discipline, intro paragraph below.
- * Right: a hairline list. Each row is "01  Brand  +". Opening a row turns its number red,
- * swaps the + for a −, and reveals one quiet line of what the discipline covers.
- * The visual crossfades to the selected discipline.
+ * Left: eyebrow, title, intro paragraph and a "Start a project" button.
+ * Right: a large hairline list "1  Brand". Hovering a row (mouse), focusing it (keyboard) or
+ * tapping it (touch) opens it: a soft panel fades in behind the row, the name darkens and
+ * nudges right, its number turns red, and its capabilities unfold below as red-dot tags.
+ * Moving the mouse off the list closes it again (as in the reference recording).
  *
- * Accessible accordion (buttons with aria-expanded); arrow keys move between rows.
- * A discipline's `image` (src/data/about.js) fills the visual; without one a flat panel shows.
+ * Accessible disclosure list: each row is a button with aria-expanded controlling its tags.
  */
 import { whoWeAre } from '../../data/about.js';
-
-const pad = (i: number) => String(i + 1).padStart(2, '0');
 ---
 
 <section class="section who" aria-labelledby="who-title">
-  <div class="container">
-    <header class="section-head">
+  <div class="container dx">
+    <div class="dx__intro-col">
       <p class="eyebrow">{whoWeAre.eyebrow}</p>
-      <h2 class="section-title" id="who-title" data-reveal>{whoWeAre.title}</h2>
-    </header>
-
-    <div class="dx" data-dx>
-      <div class="dx__left">
-        <div class="dx__stage" aria-hidden="true">
-          {
-            whoWeAre.disciplines.map((d, i) => (
-              <div
-                class:list={['dx__panel', { 'is-active': i === 0 }]}
-                data-dx-panel={i}
-              >
-                {d.image ? (
-                  <img class="dx__img" src={d.image} alt="" width="900" height="900" loading="lazy" decoding="async" />
-                ) : (
-                  <>
-                    <span class="dx__art-num">{pad(i)}</span>
-                    <span class="dx__art-name">{d.name}</span>
-                  </>
-                )}
-              </div>
-            ))
-          }
-        </div>
-        <p class="dx__intro">{whoWeAre.intro}</p>
-      </div>
-
-      <div class="dx__right">
-        <p class="dx__label">{whoWeAre.disciplinesLabel}</p>
-        <ol class="dx__list">
-          {
-            whoWeAre.disciplines.map((d, i) => (
-              <li class:list={['dx__item', { 'is-open': i === 0 }]} data-dx-item={i}>
-                <h3 class="dx__heading">
-                  <button
-                    class="dx__trigger"
-                    type="button"
-                    id={`dx-btn-${i}`}
-                    aria-expanded={i === 0 ? 'true' : 'false'}
-                    aria-controls={`dx-body-${i}`}
-                    data-dx-btn={i}
-                  >
-                    <span class="dx__num" aria-hidden="true">
-                      {pad(i)}
-                    </span>
-                    <span class="dx__name">{d.name}</span>
-                    <span class="dx__icon" aria-hidden="true" />
-                  </button>
-                </h3>
-                <div class="dx__body" id={`dx-body-${i}`} role="region" aria-labelledby={`dx-btn-${i}`}>
-                  <div class="dx__body-inner">
-                    <ul class="dx__covers">
-                      {d.covers.map((c) => (
-                        <li>{c}</li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </li>
-            ))
-          }
-        </ol>
-        <p class="dx__note">{whoWeAre.disciplinesNote}</p>
-      </div>
+      <h2 class="dx__title" id="who-title">{whoWeAre.title}</h2>
+      <p class="dx__intro">{whoWeAre.intro}</p>
+      <a class="btn btn--brand dx__cta" href={whoWeAre.cta.href}>{whoWeAre.cta.label}</a>
     </div>
+
+    <ol class="dx__list" aria-label={whoWeAre.disciplinesLabel} data-dx>
+      {
+        whoWeAre.disciplines.map((d, i) => (
+          <li class="dx__item" data-dx-item={i}>
+            <h3 class="dx__heading">
+              <button
+                class="dx__trigger"
+                type="button"
+                id={`dx-btn-${i}`}
+                aria-expanded="false"
+                aria-controls={`dx-body-${i}`}
+                data-dx-btn={i}
+              >
+                <span class="dx__num" aria-hidden="true">
+                  {i + 1}
+                </span>
+                <span class="dx__name">{d.name}</span>
+              </button>
+            </h3>
+            <div class="dx__body" id={`dx-body-${i}`} role="region" aria-labelledby={`dx-btn-${i}`}>
+              <div class="dx__body-inner">
+                <ul class="dx__covers">
+                  {d.covers.map((c) => (
+                    <li>{c}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
   </div>
 </section>
 
 <script>
-  document.querySelectorAll<HTMLElement>('[data-dx]').forEach((root) => {
-    const items = [...root.querySelectorAll<HTMLElement>('[data-dx-item]')];
-    const buttons = [...root.querySelectorAll<HTMLButtonElement>('[data-dx-btn]')];
-    const panels = [...root.querySelectorAll<HTMLElement>('[data-dx-panel]')];
-    let active = 0;
+  document.querySelectorAll<HTMLElement>('[data-dx]').forEach((list) => {
+    const items = [...list.querySelectorAll<HTMLElement>('[data-dx-item]')];
+    const buttons = [...list.querySelectorAll<HTMLButtonElement>('[data-dx-btn]')];
+    const hoverable = window.matchMedia('(hover: hover) and (pointer: fine)');
+    let active = -1;
+    let lastPointer = '';
 
     function open(i: number) {
       if (i === active) return;
       active = i;
       items.forEach((item, k) => item.classList.toggle('is-open', k === i));
       buttons.forEach((btn, k) => btn.setAttribute('aria-expanded', String(k === i)));
-      panels.forEach((panel, k) => panel.classList.toggle('is-active', k === i));
     }
 
+    items.forEach((item, i) => {
+      item.addEventListener('pointerenter', (e) => {
+        if (e.pointerType === 'mouse' && hoverable.matches) open(i);
+      });
+    });
+
+    list.addEventListener('pointerleave', (e) => {
+      if (e.pointerType === 'mouse' && hoverable.matches) open(-1);
+    });
+
     buttons.forEach((btn, i) => {
-      btn.addEventListener('click', () => open(i));
+      btn.addEventListener('pointerdown', (e) => (lastPointer = e.pointerType));
+      btn.addEventListener('click', () => {
+        // Mouse: hovering already opened it, so a click keeps it open. Touch / keyboard: toggle.
+        if (lastPointer === 'mouse' && hoverable.matches) open(i);
+        else open(active === i ? -1 : i);
+        lastPointer = '';
+      });
       btn.addEventListener('keydown', (e) => {
         const n = buttons.length;
         let next = -1;
@@ -111,13 +97,18 @@ const pad = (i: number) => String(i + 1).padStart(2, '0');
         else if (e.key === 'ArrowUp') next = (i - 1 + n) % n;
         else if (e.key === 'Home') next = 0;
         else if (e.key === 'End') next = n - 1;
+        else if (e.key === 'Escape') open(-1);
         if (next < 0) return;
         e.preventDefault();
         buttons[next].focus();
       });
     });
 
-    root.classList.add('is-enhanced');
+    // Keyboard: the focused row opens; leaving the list closes it.
+    buttons.forEach((btn, i) => btn.addEventListener('focus', () => lastPointer === '' && open(i)));
+    list.addEventListener('focusout', (e) => {
+      if (!list.contains(e.relatedTarget as Node)) open(-1);
+    });
   });
 </script>
 
@@ -129,202 +120,128 @@ const pad = (i: number) => String(i + 1).padStart(2, '0');
 
   @media (min-width: 900px) {
     .dx {
-      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-      gap: clamp(var(--space-7), 6vw, 112px);
+      grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+      gap: clamp(var(--space-7), 8vw, 160px);
       align-items: start;
     }
 
-    .dx__left {
+    .dx__intro-col {
       position: sticky;
-      top: var(--space-6);
+      top: var(--space-7);
     }
   }
 
   /* ---------- Left ---------- */
-  .dx__left {
+  .dx__intro-col {
     display: grid;
+    justify-items: start;
     gap: var(--space-5);
   }
 
-  .dx__stage {
-    position: relative;
-    container-type: inline-size;
-    display: grid;
-    overflow: hidden;
-    aspect-ratio: 16 / 10;
-    border-radius: var(--radius-card);
-    background: var(--color-surface);
-  }
-
-  @media (min-width: 900px) {
-    .dx__stage {
-      aspect-ratio: 1 / 1;
-    }
-  }
-
-  /* Placeholder until photos arrive: quiet surface panel, dark name, red number */
-  .dx__panel {
-    grid-area: 1 / 1;
-    position: relative;
-    background: var(--color-surface);
-    color: var(--color-ink);
-  }
-
-  .dx__img {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  .dx__art-num {
-    position: absolute;
-    top: var(--space-5);
-    left: var(--space-5);
-    font-size: var(--fs-small);
-    font-weight: var(--fw-medium);
-    font-variant-numeric: tabular-nums;
-    color: var(--color-brand);
-  }
-
-  .dx__art-name {
-    position: absolute;
-    left: var(--space-5);
-    bottom: var(--space-5);
-    font-size: clamp(1.5rem, 10cqw, 3.25rem);
-    font-weight: var(--fw-medium);
-    line-height: 1;
-    letter-spacing: -0.03em;
+  .dx__title {
+    max-width: 16ch;
+    font-size: var(--fs-h2);
+    font-weight: var(--fw-semibold);
+    line-height: var(--lh-heading);
+    letter-spacing: -0.02em;
+    text-wrap: balance;
   }
 
   .dx__intro {
     max-width: 34rem;
     font-size: var(--fs-body);
-    font-weight: var(--fw-regular);
-    line-height: 1.6;
+    line-height: 1.55;
     color: var(--color-text);
   }
 
-  /* Crossfade between visuals; the name rises slightly */
-  .dx.is-enhanced .dx__panel {
-    opacity: 0;
-    transition: opacity 500ms var(--ease-out);
+  .dx__cta {
+    min-width: min(100%, 15rem);
+    margin-top: var(--space-2);
   }
 
-  .dx.is-enhanced .dx__panel.is-active {
-    opacity: 1;
-  }
-
-  .dx.is-enhanced .dx__art-name,
-  .dx.is-enhanced .dx__img {
-    transform: translate3d(0, 10px, 0);
-    transition: transform 700ms var(--ease-out);
-  }
-
-  .dx.is-enhanced .dx__img {
-    transform: scale(1.04);
-  }
-
-  .dx.is-enhanced .is-active .dx__art-name,
-  .dx.is-enhanced .is-active .dx__img {
-    transform: none;
-  }
-
-  .dx:not(.is-enhanced) .dx__panel:not(.is-active) {
-    display: none;
-  }
-
-  /* ---------- Right: hairline accordion ---------- */
-  .dx__right {
-    display: grid;
-    gap: var(--space-4);
-  }
-
-  .dx__label {
-    font-size: var(--fs-small);
-    font-weight: var(--fw-medium);
-    color: var(--color-text-muted);
-  }
-
+  /* ---------- Right: list ---------- */
   .dx__list {
-    border-bottom: 1px solid var(--color-line);
+    --row-size: clamp(1.75rem, 1.2rem + 2.4vw, 3.25rem);
+    --row-gap: clamp(var(--space-4), 3vw, 44px);
   }
 
   .dx__item {
-    border-top: 1px solid var(--color-line);
+    position: relative;
+    border-bottom: 1px solid var(--color-line);
+  }
+
+  .dx__item:last-child {
+    border-bottom: 0;
+  }
+
+  /* Soft panel behind the open row */
+  .dx__item::before {
+    content: '';
+    position: absolute;
+    inset: 0 calc(var(--space-3) * -1);
+    z-index: 0;
+    border-radius: 14px;
+    background: var(--color-surface);
+    opacity: 0;
+    transform: scaleY(0.92);
+    transition:
+      opacity 400ms var(--ease-out),
+      transform 500ms var(--ease-out);
+    pointer-events: none;
+  }
+
+  .dx__item.is-open::before {
+    opacity: 1;
+    transform: none;
   }
 
   .dx__heading {
+    position: relative;
+    z-index: 1;
     margin: 0;
   }
 
   .dx__trigger {
-    display: grid;
-    grid-template-columns: 2.5rem 1fr auto;
-    align-items: center;
-    gap: var(--space-3);
+    display: flex;
+    align-items: baseline;
+    gap: var(--row-gap);
     width: 100%;
-    padding: clamp(var(--space-4), 1.6vw, 26px) 0;
+    padding: clamp(var(--space-3), 1.4vw, 22px) 0;
     border: 0;
     background: none;
-    color: var(--color-ink);
     text-align: left;
     cursor: pointer;
   }
 
   .dx__num {
-    font-size: var(--fs-small);
+    flex: none;
+    width: 1ch;
+    font-size: var(--row-size);
     font-weight: var(--fw-medium);
+    line-height: 1;
     font-variant-numeric: tabular-nums;
-    color: var(--color-text-muted);
-    transition: color 300ms var(--ease-out);
+    color: color-mix(in srgb, var(--color-ink) 22%, transparent);
+    transition: color 350ms var(--ease-out);
   }
 
   .dx__name {
-    font-size: clamp(1.25rem, 1rem + 1vw, 1.75rem);
-    font-weight: var(--fw-medium);
-    letter-spacing: -0.015em;
-    line-height: 1.2;
+    font-size: var(--row-size);
+    font-weight: var(--fw-semibold);
+    line-height: 1.05;
+    letter-spacing: -0.025em;
     color: var(--color-text-muted);
-    transition: color 300ms var(--ease-out);
+    transition:
+      color 350ms var(--ease-out),
+      transform 450ms var(--ease-out);
   }
 
-  .dx__trigger:hover .dx__name,
   .dx__item.is-open .dx__name {
     color: var(--color-ink);
+    transform: translate3d(8px, 0, 0);
   }
 
   .dx__item.is-open .dx__num {
     color: var(--color-brand);
-  }
-
-  /* + / − marker: two hairlines, the vertical one collapses when open */
-  .dx__icon {
-    position: relative;
-    width: 14px;
-    height: 14px;
-  }
-
-  .dx__icon::before,
-  .dx__icon::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 0;
-    width: 100%;
-    height: 1.5px;
-    margin-top: -0.75px;
-    background: currentColor;
-    transition: transform 350ms var(--ease-out);
-  }
-
-  .dx__icon::after {
-    transform: rotate(90deg);
-  }
-
-  .dx__item.is-open .dx__icon::after {
-    transform: rotate(0deg);
   }
 
   .dx__trigger:focus-visible {
@@ -335,13 +252,16 @@ const pad = (i: number) => String(i + 1).padStart(2, '0');
     text-decoration: underline;
     text-decoration-color: var(--color-brand);
     text-decoration-thickness: 2px;
-    text-underline-offset: 6px;
+    text-underline-offset: 8px;
   }
 
+  /* Capabilities unfold under the name */
   .dx__body {
+    position: relative;
+    z-index: 1;
     display: grid;
     grid-template-rows: 0fr;
-    transition: grid-template-rows 450ms var(--ease-out);
+    transition: grid-template-rows 500ms var(--ease-out);
   }
 
   .dx__item.is-open .dx__body {
@@ -357,7 +277,8 @@ const pad = (i: number) => String(i + 1).padStart(2, '0');
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-2) var(--space-5);
-    padding: var(--space-1) 0 clamp(var(--space-4), 1.6vw, 26px) calc(2.5rem + var(--space-3));
+    /* line up under the name: digit width (~0.6em of the row size) + gap + the 8px nudge */
+    padding: 0 0 clamp(var(--space-4), 1.6vw, 24px) calc(var(--row-size) * 0.6 + var(--row-gap) + 8px);
     font-size: var(--fs-small);
     font-weight: var(--fw-medium);
     letter-spacing: 0.04em;
@@ -365,15 +286,20 @@ const pad = (i: number) => String(i + 1).padStart(2, '0');
     text-transform: uppercase;
     color: var(--color-text);
     opacity: 0;
-    transition: opacity 250ms var(--ease-out);
+    transform: translate3d(0, -6px, 0);
+    transition:
+      opacity 250ms var(--ease-out),
+      transform 250ms var(--ease-out);
   }
 
   .dx__item.is-open .dx__covers {
     opacity: 1;
-    transition: opacity 400ms var(--ease-out) 150ms;
+    transform: none;
+    transition:
+      opacity 400ms var(--ease-out) 120ms,
+      transform 400ms var(--ease-out) 120ms;
   }
 
-  /* Red-dot markers: "• BRAND STRATEGY  • POSITIONING  • NAMING" (each item keeps its own dot when wrapping) */
   .dx__covers li {
     display: inline-flex;
     align-items: center;
@@ -389,19 +315,16 @@ const pad = (i: number) => String(i + 1).padStart(2, '0');
     background: var(--color-brand);
   }
 
-  .dx__note {
-    margin-top: var(--space-2);
-    font-size: var(--fs-small);
-    color: var(--color-text-muted);
-  }
-
+  /* Phones: tighter rows, tags indented less */
   @media (max-width: 599px) {
-    .dx__trigger {
-      grid-template-columns: 2rem 1fr auto;
+    .dx__item::before {
+      inset: 0 calc(var(--space-2) * -1);
+      border-radius: 10px;
     }
 
     .dx__covers {
-      padding-left: calc(2rem + var(--space-3));
+      padding-left: 0;
+      gap: var(--space-2) var(--space-4);
     }
   }
 </style>

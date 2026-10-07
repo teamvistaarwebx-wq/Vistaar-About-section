@@ -28,6 +28,7 @@ export const whoWeAre = {
   intro:
     'We work with businesses, institutions, development organisations and public-sector teams. We help them see where they stand, decide what needs to change, build the right strategy and systems, and communicate clearly.',
   disciplinesLabel: 'Our work sits where six disciplines meet.',
+  cta: { label: 'Start a project', href: '#contact' },
   disciplinesNote: 'They work as one system. Every engagement uses the combination its problem needs.',
   /**
    * Six disciplines, shown as a clickable list beside a changing visual.

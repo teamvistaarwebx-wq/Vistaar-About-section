@@ -47,6 +47,4 @@ This section is a port of the Framer `ImpactRow` code component, rebuilt in plai
 
 ## Six disciplines (Who we are)
 
-Minimal layout. A visual on the left with the intro paragraph under it, and a hairline list on the right ("01  Brand  +"). Clicking a row, or using Enter/Space and the arrow keys, opens it: its number turns red, + becomes −, its capabilities appear as red-dot uppercase tags, and the visual crossfades to that discipline.
-
-To use photos, set `image` for each discipline in `src/data/about.js` (for example `'/assets/about/disciplines/01-brand.webp'`, square, at least 900px). Without an image, a light placeholder panel with the name is shown.
+Left: the eyebrow, title, intro paragraph and a "Start a project" button. Right: a large hairline list ("1  Brand"). Hovering a row with the mouse, tabbing to it or tapping it on a phone opens it: a soft panel fades in behind the row, the name darkens and nudges right, the number turns red, and its capabilities unfold as red-dot tags. Moving the mouse off the list closes it. Each row is a disclosure button (`aria-expanded`), and the arrow keys and Escape work.
