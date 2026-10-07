@@ -179,7 +179,10 @@ export const timeline = {
 export const howWeWork = {
   eyebrow: 'How we work',
   title: 'We do not begin with a service. We begin with the problem.',
+  // Heading as shown on the page: lead + <accent in red> + tail
+  heading: { lead: 'We begin with', accent: 'the problem', tail: ', not a service.' },
   intro: 'Every engagement moves through six steps, in a loop. What we learn feeds the next decision.',
+  loopNote: 'What we learn feeds the next decision.',
   steps: ['Research first', 'Diagnose', 'Design the intervention', 'Execute', 'Measure', 'Improve'],
   problemsTitle: 'What looks like the problem, and what often is.',
   problemsHint: 'Tap or hover a card to flip it.',

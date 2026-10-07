@@ -56,3 +56,11 @@ A cut-out black-and-white portrait whose bottom edge dissolves into the page thr
 - **≥1024px, motion allowed:** the section pins briefly. The portrait comes into focus (blurred and zoomed, then sharp), the name rises word by word, the story's words darken in sequence as you scroll, the quote line draws down while the quote turns red word by word, and the label lands last.
 - **Phones and tablets:** no pinning. Each block plays as it scrolls through the viewport.
 - **Reduced motion or no JS:** everything is shown at rest, and the marquee becomes a wrapped list.
+
+## How we work
+
+A centred heading ("We begin with **the problem**, not a service.") and subheading, then a ring diagram of the six steps. Each step has an icon in a circular node, the track has direction arrows, a red dashed loop runs from Improve back to Research, and "What we learn feeds the next decision." sits in the centre.
+
+- **Motion allowed (all widths):** the diagram pins. A red line draws around the ring, and each node fills red as the line reaches it. Once Improve fills, the dashed loop flows back to Research and the centre lights up. A caption names the current step.
+- **Phones:** the step names don't fit around the ring, so only the numbers sit there and the caption names each step.
+- **Reduced motion or no JS:** the finished diagram is shown at rest.
