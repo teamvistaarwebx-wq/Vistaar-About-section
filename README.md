@@ -51,7 +51,7 @@ The hero banner has been removed. The page now opens with **Vistaar in numbers**
 
 ## Who we work with
 
-- **For a … it may mean …:** the five kinds of organisation are tabs with Iconsax icons, next to a dark panel with a slow red glow. The panel shows what working with Vistaar may mean for the selected tab, with an "01 / 05" counter. While the block is on screen the tabs advance every 5 seconds, and a red progress line runs under the active tab. Hovering or focusing the block pauses it. Arrow keys, Home and End move between tabs. On phones the tabs become a swipeable row of small cards above the panel. Without JS, all five answers are listed.
+- **For a … it may mean …:** the five kinds of organisation are tabs with Iconsax icons, next to a solid brand-red panel. The panel shows what working with Vistaar may mean for the selected tab, with an "01 / 05" counter. While the block is on screen the tabs advance every 5 seconds, and a red progress line runs under the active tab. Hovering or focusing the block pauses it. Arrow keys, Home and End move between tabs. On phones the tabs become a swipeable row of small cards above the panel. Without JS, all five answers are listed.
 - **Sectors:** three cards (Consumer & Commerce, Industry & Services, Development & Public), each with a group icon and a grid of sector tiles with their own icons. Cards and tiles fade up in turn. Hovering a card lifts it, and hovering a tile turns its icon chip red.
 - With reduced motion there is no auto-advance and no entrance motion.
 

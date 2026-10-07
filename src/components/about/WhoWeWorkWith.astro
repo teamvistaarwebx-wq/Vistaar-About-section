@@ -2,7 +2,7 @@
 /**
  * Who we work with.
  *
- * 1. "For a … it may mean …": the five kinds of organisation are tabs (Iconsax icons) beside a dark
+ * 1. "For a … it may mean …": the five kinds of organisation are tabs (Iconsax icons) beside a red
  *    panel that shows what working with Vistaar may mean for the selected one. While the section is
  *    on screen the tabs advance on their own every few seconds, with a progress line on the active
  *    tab; hovering or focusing the block pauses it. Arrow keys, Home and End move between tabs.
@@ -82,7 +82,6 @@ const pad = (n: number) => String(n).padStart(2, '0');
             </div>
           ))
         }
-        <span class="ww__glow" aria-hidden="true" />
       </div>
     </div>
 
@@ -336,35 +335,15 @@ const pad = (n: number) => String(n).padStart(2, '0');
     }
   }
 
-  /* Panel: dark card with a soft red glow */
+  /* Panel: solid brand-red card */
   .ww__stage {
     position: relative;
     display: grid;
     min-height: 100%;
     overflow: hidden;
     border-radius: var(--radius-card);
-    background: var(--color-ink);
+    background: var(--color-brand); /* solid brand red, no gradient */
     color: var(--color-on-brand);
-    isolation: isolate;
-  }
-
-  .ww__glow {
-    position: absolute;
-    z-index: -1;
-    right: -20%;
-    bottom: -45%;
-    width: 80%;
-    aspect-ratio: 1;
-    border-radius: 50%;
-    background: radial-gradient(closest-side, rgb(var(--color-brand-rgb) / 0.75), transparent);
-    filter: blur(10px);
-    animation: ww-glow 9s ease-in-out infinite alternate;
-  }
-
-  @keyframes ww-glow {
-    to {
-      transform: translate3d(-12%, -8%, 0) scale(1.1);
-    }
   }
 
   .ww__panel {
@@ -375,7 +354,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
   }
 
   .ww__panel + .ww__panel {
-    border-top: 1px solid rgb(255 255 255 / 0.12); /* no-JS: all answers stacked */
+    border-top: 1px solid rgb(255 255 255 / 0.2); /* no-JS: all answers stacked */
   }
 
   .ww__panel-top {
@@ -392,9 +371,9 @@ const pad = (n: number) => String(n).padStart(2, '0');
     width: 60px;
     height: 60px;
     border-radius: 18px;
-    background: rgb(255 255 255 / 0.08);
+    background: rgb(255 255 255 / 0.14);
     color: var(--color-on-brand);
-    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.14);
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.22);
   }
 
   .ww__panel-count {
@@ -404,12 +383,12 @@ const pad = (n: number) => String(n).padStart(2, '0');
   }
 
   .ww__panel-count span {
-    color: rgb(255 255 255 / 0.5);
+    color: rgb(255 255 255 / 0.65);
   }
 
   .ww__panel-for {
     font-size: var(--fs-body);
-    color: rgb(255 255 255 / 0.72);
+    color: rgb(255 255 255 / 0.85);
   }
 
   .ww__panel-for strong {
@@ -423,7 +402,7 @@ const pad = (n: number) => String(n).padStart(2, '0');
     font-weight: var(--fw-bold);
     letter-spacing: var(--tracking-eyebrow);
     text-transform: uppercase;
-    color: color-mix(in srgb, var(--color-brand) 45%, white);
+    color: rgb(255 255 255 / 0.78);
   }
 
   .ww__panel-means {
@@ -561,28 +540,9 @@ const pad = (n: number) => String(n).padStart(2, '0');
       box-shadow var(--dur-base) var(--ease-out);
   }
 
-  /* soft red corner glow on hover */
-  .ww__group::before {
-    content: '';
-    position: absolute;
-    z-index: -1;
-    top: -40%;
-    right: -30%;
-    width: 70%;
-    aspect-ratio: 1;
-    border-radius: 50%;
-    background: radial-gradient(closest-side, rgb(var(--color-brand-rgb) / 0.12), transparent);
-    opacity: 0;
-    transition: opacity var(--dur-base) var(--ease-out);
-  }
-
   .ww__group:hover {
     transform: translateY(-4px);
     box-shadow: 0 24px 50px -30px rgb(0 0 0 / 0.3);
-  }
-
-  .ww__group:hover::before {
-    opacity: 1;
   }
 
   .ww__group-head {
@@ -686,9 +646,6 @@ const pad = (n: number) => String(n).padStart(2, '0');
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .ww__glow {
-      animation: none;
-    }
 
     .ww__group:hover,
     .ww__tile:hover .ww__tile-icon {
