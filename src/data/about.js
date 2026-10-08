@@ -320,10 +320,10 @@ export const principles = {
     { title: 'Research before assumption.', text: 'Decisions should start with evidence wherever evidence can reasonably be gathered.', image: '/assets/about/principles/02-research.webp' },
     { title: 'Strategy before execution.', text: 'Activity without direction creates output, not progress.', image: '/assets/about/principles/03-strategy.webp' },
     { title: 'Systems before scale.', text: 'Scaling a weak system usually produces a bigger weak system.', image: '/assets/about/principles/04-systems.webp' },
-    { title: 'Communication with context.', text: 'Commercial, institutional and public communication need different approaches.', image: null },
-    { title: 'Technology with purpose.', text: 'Technology should reduce friction, improve decisions or create measurable leverage.', image: null },
-    { title: 'Data with interpretation.', text: 'Data alone is not insight.', image: null },
-    { title: 'Creativity with purpose.', text: 'Good creative should communicate, influence behaviour and serve an objective.', image: null },
+    { title: 'Communication with context.', text: 'Commercial, institutional and public communication need different approaches.', image: '/assets/about/principles/05-communication.webp' },
+    { title: 'Technology with purpose.', text: 'Technology should reduce friction, improve decisions or create measurable leverage.', image: '/assets/about/principles/06-technology.webp' },
+    { title: 'Data with interpretation.', text: 'Data alone is not insight.', image: '/assets/about/principles/07-data.webp' },
+    { title: 'Creativity with purpose.', text: 'Good creative should communicate, influence behaviour and serve an objective.', image: '/assets/about/principles/08-creativity.webp' },
   ],
 };
 

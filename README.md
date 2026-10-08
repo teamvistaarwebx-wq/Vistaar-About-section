@@ -45,6 +45,8 @@ This section is a port of the Framer `ImpactRow` code component, rebuilt in plai
 - **≥1200px:** two rows of four. Hovering or tabbing to a card widens it to reveal a red panel built from the principle's own title (for example "Problems / before / services"), while its neighbours narrow. Leaving the row returns to the first card.
 - **<1200px:** an accordion with one card open per row. Tap or focus a card to open its panel.
 
+Each principle has an image (`public/assets/about/principles/01-problems.webp` to `08-creativity.webp`, 800×756 WebP) that fills the panel. To replace one, keep the file name and a near-square shape. On phones the panel is a wide strip, so keep the subject centred.
+
 ## Page opener
 
 The hero banner has been removed. The page now opens with **Vistaar in numbers** ("Six years of practice, in four numbers."), and that title is the page's h1. `NumbersStrip` takes a `lead` prop for this.
