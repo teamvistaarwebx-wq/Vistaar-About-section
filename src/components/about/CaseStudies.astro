@@ -3,12 +3,12 @@
  * Case studies snapshot (after How we work), laid out like the printed case-study spreads.
  *
  * One spread per slide (with the next one peeking on phones), prev/next buttons and an "n / 4"
- * counter. Left: logo + sector, a headline and the challenge → work → result story with red arrows.
+ * counter. Clients are anonymised (a generic label such as "D2C brand" + sector). Left: label + sector, a headline and the challenge → work → result story with red arrows.
  * Right: a minimal before/after bar chart (grey before, brand red after, on a labelled axis with
  * gridlines), the headline figure, and the source note.
  *
  * Charts show only the reported numbers. A bar with `upto` adds a lighter band for the top of a
- * range (Jam2gather's 10–14×). When a spread comes into view the gridlines draw, the bars rise one
+ * range (e.g. a 10–14× ROAS). When a spread comes into view the gridlines draw, the bars rise one
  * after another, the values land and the headline figure counts up; it replays on re-entry.
  * Every bar is direct-labelled with a hover/focus tooltip, and each chart has a hidden data table.
  */
@@ -628,7 +628,7 @@ const pct = (v: number, max: number) => `${((v / max) * 100).toFixed(2)}%`;
     color: var(--color-text);
   }
 
-  /* Headline figure (and Mommy's month 01 → month 02 cards) */
+  /* Headline figure (and the optional month 01 → month 02 cards) */
   .cs__outcome {
     container-type: inline-size;
     min-width: 0;

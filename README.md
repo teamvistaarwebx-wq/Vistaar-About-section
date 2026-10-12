@@ -91,11 +91,10 @@ A red Vision card overlaps a white, softly shadowed Mission card. The mission's 
 
 ## Case studies
 
-This section sits after How we work and follows the printed case-study spreads. It shows one spread per slide (with the next one peeking on phones), prev/next buttons and an "n / 4" counter. Content is in `caseStudies` in `src/data/about.js`; the order is Atulya Karigari, Mommy's Chicken, Jam2gather, HART Cosmetics.
+This section sits after How we work and follows the printed case-study spreads. It shows one spread per slide (with the next one peeking on phones), prev/next buttons and an "n / 4" counter. Content is in `caseStudies` in `src/data/about.js`; clients are not named: each spread shows a generic label ("D2C brand", "Events brand") and its sector.
 
-- **Left:** logo and sector, a headline (for example "Built in month one. Scaled in month two."), then the challenge, what we did and the result, joined by red arrows, and the service tags.
-- **Right:** a minimal bar chart in a bordered panel, with a caption, an axis title, labelled gridlines, a grey "before" bar and a red "after" bar, each with its value on top. Next to it is the headline figure (6.67×, 10–14×, up to 3×). Mommy's Chicken instead shows "Month 01 / Build" leading to a black "Month 02 / Growth" card (₹33L / month, 2.2× baseline, +120%). A source note sits underneath.
-- ROAS charts compare ₹1 of spend with what came back. A range (Jam2gather's 10–14) shows as a solid bar plus a lighter band.
+- **Left:** the generic client label and sector, a headline (for example "Built in month one. Scaled in month two."), then the challenge, what we did and the result, joined by red arrows, and the service tags.
+- **Right:** a minimal bar chart in a bordered panel, with a caption, an axis title, labelled gridlines, a grey "before" bar and a red "after" bar, each with its value on top. Next to it is the headline figure (6.67×, 10–14×, up to 3×). The fresh-meat D2C spread instead shows "Month 01 / Build" leading to a black "Month 02 / Growth" card (₹33L / month, 2.2× baseline, +120%). A source note sits underneath.
+- ROAS charts compare ₹1 of spend with what came back. A range (such as 10–14) shows as a solid bar plus a lighter band.
 - When a spread comes into view, the gridlines draw, the bars rise one after another, the values land and the headline figure counts up. This replays each time. With reduced motion, the finished chart is shown at rest.
 - Charts use only the reported numbers. Every bar has a hover/focus tooltip, and each chart has a hidden data table for screen readers.
-- The client logos in `public/assets/about/clients/` are interim crops from a screenshot, so replace them with the official SVG or PNG files. Atulya Karigari and HART use a text wordmark until logos arrive (add `logo: { src, width, height }`).

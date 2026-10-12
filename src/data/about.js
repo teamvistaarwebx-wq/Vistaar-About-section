@@ -191,16 +191,11 @@ export const howWeWork = {
 };
 
 /**
- * Case studies (snapshot after How we work).
- * Sources: Mommy's Chicken and Jam2gather from the client case-study slide supplied by the team;
- * HART Cosmetics from the 2026 profile (Case Study 01). Only reported numbers are charted:
- * - chart.type 'growth': before → after values (₹ lakh)
- * - chart.type 'roas':   return on ad spend, a single value or a [min, max] range, against 1× break-even
- */
-/**
  * Case studies, laid out like the printed case-study spreads: a headline, challenge → work → result,
  * a before/after bar chart (grey before, red after, on a labelled axis) and the headline figure.
  * Figures come from the case-study brochure and the company profile only.
+ * Clients are not named on the public page: `client` is a generic label (e.g. 'D2C brand') and
+ * `logo` stays null.
  * chart.bars: { label, value, upto? } where `upto` adds a lighter band for the top of a range.
  * chart.format: how a value is printed ({v} is the number).
  */
@@ -210,7 +205,7 @@ export const caseStudies = {
   intro: 'A snapshot of what changed for four brands when strategy, content and performance worked as one system.',
   items: [
     {
-      client: 'Atulya Karigari',
+      client: 'D2C brand',
       logo: null,
       sector: 'Heritage Craft · Gifting',
       headline: 'The commercial shift.',
@@ -234,8 +229,8 @@ export const caseStudies = {
       note: 'Founder-confirmed engagement result. Not an isolated attribution test.',
     },
     {
-      client: "Mommy's Chicken",
-      logo: { src: '/assets/about/clients/mommys-chicken.png', width: 128, height: 58 },
+      client: 'D2C brand',
+      logo: null,
       sector: 'Fresh Meat · Food',
       headline: 'Built in month one. Scaled in month two.',
       challenge: 'Selling across Blinkit, Zomato and Instamart, but with a weak website and no direct online sales.',
@@ -259,8 +254,8 @@ export const caseStudies = {
       note: 'Timeline and monthly revenue confirmed by Vistaar.',
     },
     {
-      client: 'Jam2gather',
-      logo: { src: '/assets/about/clients/jam2gather.png', width: 202, height: 32 },
+      client: 'Events brand',
+      logo: null,
       sector: 'Live Music · Events',
       headline: 'Every event, its own campaign.',
       challenge: 'Selling tickets for live jamming events, one city and one date at a time.',
@@ -282,7 +277,7 @@ export const caseStudies = {
       stat: { value: '10–14×', label: 'ROAS on ticket sales' },
     },
     {
-      client: 'HART Cosmetics',
+      client: 'D2C brand',
       logo: null,
       sector: 'Skincare · D2C',
       headline: 'One journey in a crowded category.',
